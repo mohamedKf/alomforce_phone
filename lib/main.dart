@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'api.dart';
 import 'screens/login_screen.dart';
+import 'screens/manager/manager_home.dart';
 import 'screens/role_placeholder.dart';
 import 'screens/warehouse/warehouse_home.dart';
 import 'state.dart';
@@ -46,8 +47,8 @@ class AlomForceApp extends StatelessWidget {
   }
 }
 
-// Each role lands on its own home. Only the warehouse (stock) worker is built
-// out so far; the rest get a clear placeholder rather than a wrong screen.
+// Each role lands on its own home. Roles without a phone app yet get a clear
+// placeholder rather than a wrong screen.
 Widget homeForRole(String role) {
   switch (role) {
     // A driver is a stock worker who also delivers, so they share the worker
@@ -55,6 +56,8 @@ Widget homeForRole(String role) {
     case 'warehouse':
     case 'driver':
       return const WarehouseHome();
+    case 'manager':
+      return const ManagerHome();
     default:
       return RolePlaceholder(role: role);
   }
