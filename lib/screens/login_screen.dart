@@ -56,23 +56,35 @@ class _LoginScreenState extends State<LoginScreen> {
               constraints: BoxConstraints(minHeight: box.maxHeight),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 40),
-                    _brand(),
-                    const SizedBox(height: 28),
-                    _card(context),
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                      onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const ServerSettingsScreen())),
-                      icon: const Icon(Icons.dns_outlined, color: Colors.white70, size: 18),
-                      label: const Text('Server settings',
-                          style: TextStyle(color: Colors.white70)),
+                // The sign-in card is capped and centred rather than filling
+                // the width: stretched across a tablet the fields run the whole
+                // screen, which reads as a form that lost its layout. Phones
+                // are narrower than the cap, so they are unaffected.
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      // Stretch inside the cap so the card fills the 420 rather
+                      // than shrinking to its intrinsic width.
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 40),
+                        _brand(),
+                        const SizedBox(height: 28),
+                        _card(context),
+                        const SizedBox(height: 16),
+                        TextButton.icon(
+                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const ServerSettingsScreen())),
+                          icon: const Icon(Icons.dns_outlined, color: Colors.white70, size: 18),
+                          label: const Text('Server settings',
+                              style: TextStyle(color: Colors.white70)),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
               ),
             ),

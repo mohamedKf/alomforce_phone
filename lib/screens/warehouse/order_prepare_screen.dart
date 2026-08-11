@@ -15,9 +15,12 @@ const _nextStatus = {
   'picking': ['ready', 'Mark ready'],
 };
 
-// All statuses, for the tap-to-change picker on the header.
+// The statuses this picker offers on the header.
+//
+// 'draft' is deliberately absent: the worker app creates orders as confirmed,
+// and no screen here lists drafts, so offering it would let someone move an
+// order into a state the app itself cannot show it in again.
 const _allStatuses = [
-  ('draft', 'Draft'),
   ('submitted', 'Submitted'),
   ('confirmed', 'Confirmed'),
   ('picking', 'Picking'),

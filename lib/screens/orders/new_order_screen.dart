@@ -108,6 +108,12 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
     try {
       final order = await api.post('/orders/', {
         'client': _client!['id'],
+        // Confirmed, not the model's default draft. An order typed here is a
+        // real order the shop has taken, and the warehouse prepare screen only
+        // lists confirmed/picking/ready/out_for_delivery/delivered -- a draft
+        // is invisible on every one of its tabs, so it would look like the
+        // order was never created. Drafts stay a desktop concept.
+        'status': 'confirmed',
         'lines': _lines
             .map((l) => {
                   'profile': l['profile'],
