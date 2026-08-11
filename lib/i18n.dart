@@ -125,6 +125,11 @@ const Map<String, Map<String, String>> _map = {
     'Approve': 'אשר', 'Reject': 'דחה',
     'Request approved.': 'הבקשה אושרה.', 'Request rejected.': 'הבקשה נדחתה.',
     'Manager': 'מנהל', 'Clock in and out': 'כניסה ויציאה',
+    // manager — active drivers
+    'Active drivers': 'נהגים פעילים', 'out for delivery': 'יצאו למשלוח',
+    'ready to load': 'מוכן להעמסה', 'No drivers.': 'אין נהגים.',
+    'On shift': 'במשמרת', 'Online': 'מחובר', 'Off': 'לא פעיל',
+    'delivered today': 'נמסרו היום',
   },
   'ar': {
     'Clock': 'الساعة', 'Orders': 'الطلبات', 'Stock': 'المخزون', 'Me': 'حسابي',

@@ -7,7 +7,6 @@ import '../../i18n.dart';
 import '../../state.dart';
 import '../../theme.dart';
 import '../settings_screen.dart';
-import '../warehouse/clock_screen.dart';
 import '../warehouse/orders_to_prepare.dart';
 import '../warehouse/scan_screen.dart';
 import '../warehouse/stock_screen.dart';
@@ -111,26 +110,13 @@ class _ManagerMe extends StatelessWidget {
         Center(child: Text(t('Manager'), style: const TextStyle(color: kMuted))),
         const SizedBox(height: 28),
         Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.schedule_outlined, color: kNavy),
-                title: Text(t('Time clock')),
-                subtitle: Text(t('Clock in and out')),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ClockScreen())),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.settings_outlined, color: kNavy),
-                title: Text(t('Settings')),
-                subtitle: Text(t('Server and language')),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SettingsScreen())),
-              ),
-            ],
+          child: ListTile(
+            leading: const Icon(Icons.settings_outlined, color: kNavy),
+            title: Text(t('Settings')),
+            subtitle: Text(t('Server and language')),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen())),
           ),
         ),
         const SizedBox(height: 16),

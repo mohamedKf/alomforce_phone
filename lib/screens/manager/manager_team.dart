@@ -18,6 +18,7 @@ class ManagerTeam extends StatefulWidget {
 class _ManagerTeamState extends State<ManagerTeam> {
   List<dynamic>? _pending;
   List<dynamic>? _online;
+  Map? _drivers; // {out_for_delivery, ready, drivers: [...]}
   Object? _error;
   final _busy = <int>{}; // correction ids currently being acted on
 
@@ -30,11 +31,13 @@ class _ManagerTeamState extends State<ManagerTeam> {
   Future<void> _load() async {
     setState(() => _error = null);
     try {
+      final drivers = await api.get('/dashboard/drivers/');
       final c = await api.get('/corrections/', query: {'status': 'pending'});
       final pRows = c is Map ? (c['results'] ?? []) : c;
       final o = await api.get('/dashboard/online/');
       if (mounted) {
         setState(() {
+          _drivers = drivers as Map;
           _pending = pRows as List;
           _online = o as List;
         });
@@ -77,6 +80,10 @@ class _ManagerTeamState extends State<ManagerTeam> {
         ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            _sectionHeader(t('Active drivers'), Icons.local_shipping_outlined),
+            const SizedBox(height: 8),
+            _driversBoard(),
+            const SizedBox(height: 24),
             _sectionHeader(
                 t('Pending approvals'), Icons.pending_actions_outlined),
             const SizedBox(height: 8),
@@ -111,6 +118,117 @@ class _ManagerTeamState extends State<ManagerTeam> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Text(text, style: const TextStyle(color: kMuted)),
       );
+
+  Widget _driversBoard() {
+    final d = _drivers;
+    if (d == null) return const SizedBox.shrink();
+    final drivers = (d['drivers'] ?? []) as List;
+    final out = (d['out_for_delivery'] ?? 0) as int;
+    final ready = (d['ready'] ?? 0) as int;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Business-wide truck counts (the run is shared, not per driver).
+        Row(
+          children: [
+            _truckChip(Icons.local_shipping, '$out', t('out for delivery'),
+                out > 0 ? kBlue : kMuted),
+            const SizedBox(width: 10),
+            _truckChip(Icons.inventory_2_outlined, '$ready', t('ready to load'),
+                ready > 0 ? kWarn : kMuted),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (drivers.isEmpty)
+          _emptyNote(t('No drivers.'))
+        else
+          ...drivers.map((x) => _driverTile(x as Map)),
+      ],
+    );
+  }
+
+  Widget _truckChip(IconData icon, String value, String label, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: kCard,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: kLine),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(width: 10),
+            Text(value,
+                style: TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.w800, color: color)),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(color: kMuted, fontSize: 12)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _driverTile(Map u) {
+    final clockedIn = u['clocked_in'] == true;
+    final online = u['online'] == true;
+    final delivered = (u['delivered_today'] ?? 0) as int;
+    final statusColor = clockedIn ? kSuccess : (online ? kBlue : kMuted);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Stack(
+          children: [
+            CircleAvatar(
+              backgroundColor: kBlueLight,
+              child: Text(_initials(u['full_name']?.toString() ?? '?'),
+                  style:
+                      const TextStyle(color: kNavy, fontWeight: FontWeight.w700)),
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                width: 13,
+                height: 13,
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: kCard, width: 2),
+                ),
+              ),
+            ),
+          ],
+        ),
+        title: Text(u['full_name']?.toString() ?? '',
+            style: const TextStyle(fontWeight: FontWeight.w600, color: kInk)),
+        subtitle: Text(
+          clockedIn
+              ? t('On shift')
+              : online
+                  ? t('Online')
+                  : t('Off'),
+          style: TextStyle(color: statusColor, fontSize: 12.5),
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('$delivered',
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w800, color: kNavy)),
+            Text(t('delivered today'),
+                style: const TextStyle(color: kMuted, fontSize: 10.5)),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _approvalCard(Map r) {
     final id = r['id'] as int;
