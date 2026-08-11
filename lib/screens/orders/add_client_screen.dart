@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../api.dart';
 import '../../i18n.dart';
 import '../../theme.dart';
+import '../../widgets.dart';
 
 class AddClientScreen extends StatefulWidget {
   const AddClientScreen({super.key});
@@ -58,7 +59,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(t('Add client'))),
-      body: ListView(
+      body: Bounded(ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _field(_name, t('Business name'), required: true),
@@ -78,7 +79,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
             child: Text(_saving ? t('Saving…') : t('Save client')),
           ),
         ],
-      ),
+      )),
     );
   }
 

@@ -57,14 +57,12 @@ class _PayslipsScreenState extends State<PayslipsScreen> {
               ? const Center(child: CircularProgressIndicator())
               : _rows!.isEmpty
                   ? EmptyState(Icons.receipt_long_outlined, t('No payslips yet.'))
-                  : RefreshIndicator(
+                  : ResponsiveCards(
                       onRefresh: _load,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _rows!.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 10),
-                        itemBuilder: (_, i) => _card(_rows![i] as Map),
-                      ),
+                      padding: const EdgeInsets.all(16),
+                      itemHeight: 92,
+                      itemCount: _rows!.length,
+                      itemBuilder: (_, i) => _card(_rows![i] as Map),
                     ),
     );
   }

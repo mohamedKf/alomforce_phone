@@ -128,14 +128,12 @@ class _OrdersToPrepareState extends State<OrdersToPrepare> {
       return EmptyState(Icons.inbox_outlined, t('No orders here.'),
           actionLabel: t('Retry'), onAction: _load);
     }
-    return RefreshIndicator(
+    return ResponsiveCards(
       onRefresh: _load,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-        itemCount: _orders!.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
-        itemBuilder: (_, i) => _OrderCard(order: _orders![i], onChanged: _load),
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      itemHeight: 132,
+      itemCount: _orders!.length,
+      itemBuilder: (_, i) => _OrderCard(order: _orders![i], onChanged: _load),
     );
   }
 }

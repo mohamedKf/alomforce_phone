@@ -89,17 +89,12 @@ class _DeliveriesListState extends State<DeliveriesList>
           widget.done ? 'No deliveries yet.' : 'Nothing to deliver right now.',
           actionLabel: 'Refresh', onAction: _load);
     }
-    return RefreshIndicator(
+    return ResponsiveCards(
       onRefresh: _load,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(14),
-        itemCount: _rows!.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
-        itemBuilder: (_, i) => _DeliveryCard(
-          _rows![i],
-          onOpened: _load,
-        ),
-      ),
+      padding: const EdgeInsets.all(14),
+      itemHeight: 140,
+      itemCount: _rows!.length,
+      itemBuilder: (_, i) => _DeliveryCard(_rows![i], onOpened: _load),
     );
   }
 }

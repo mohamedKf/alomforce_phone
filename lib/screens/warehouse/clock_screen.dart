@@ -95,7 +95,7 @@ class _ClockScreenState extends State<ClockScreen> {
     if (_summary == null) return const Center(child: CircularProgressIndicator());
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView(
+      child: Bounded(ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _statusCard(),
@@ -119,7 +119,7 @@ class _ClockScreenState extends State<ClockScreen> {
           const SizedBox(height: 8),
           ..._historyList(),
         ],
-      ),
+      )),
     );
   }
 

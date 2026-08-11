@@ -206,10 +206,10 @@ class _CatalogPickerScreenState extends State<CatalogPickerScreen> {
     if (_items!.isEmpty) {
       return EmptyState(Icons.inventory_2_outlined, t('No profiles found.'));
     }
-    return ListView.separated(
+    return ResponsiveCards(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+      itemHeight: 92,
       itemCount: _items!.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (_, i) => _card(_items![i] as Map),
     );
   }

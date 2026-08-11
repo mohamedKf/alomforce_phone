@@ -77,7 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(t('Settings'))),
-      body: ListView(
+      body: Bounded(ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _card(t('Server'), Icons.dns_outlined, [
@@ -137,7 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: kMuted, fontSize: 11.5)),
           ]),
         ],
-      ),
+      )),
     );
   }
 

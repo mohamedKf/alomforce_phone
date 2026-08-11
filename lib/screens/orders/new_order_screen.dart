@@ -130,7 +130,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(t('New order'))),
-      body: ListView(
+      body: Bounded(ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Client card
@@ -186,7 +186,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
             onPressed: _saving ? null : _save,
           ),
         ],
-      ),
+      )),
     );
   }
 

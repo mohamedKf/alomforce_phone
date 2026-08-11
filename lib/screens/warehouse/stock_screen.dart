@@ -212,14 +212,12 @@ class _StockScreenState extends State<StockScreen> {
     if (_items!.isEmpty) {
       return EmptyState(Icons.inventory_2_outlined, t('No stock found.'));
     }
-    return RefreshIndicator(
+    return ResponsiveCards(
       onRefresh: _load,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
-        itemCount: _items!.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
-        itemBuilder: (_, i) => _StockCard(item: _items![i], onChanged: _load),
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+      itemHeight: 210,
+      itemCount: _items!.length,
+      itemBuilder: (_, i) => _StockCard(item: _items![i], onChanged: _load),
     );
   }
 }

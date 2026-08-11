@@ -100,7 +100,7 @@ class _CorrectionRequestScreenState extends State<CorrectionRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(t('Request a time fix'))),
-      body: ListView(
+      body: Bounded(ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _card([
@@ -143,7 +143,7 @@ class _CorrectionRequestScreenState extends State<CorrectionRequestScreen> {
             ..._mine!.map(_requestTile),
           ],
         ],
-      ),
+      )),
     );
   }
 
