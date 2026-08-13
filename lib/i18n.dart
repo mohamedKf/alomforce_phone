@@ -11,6 +11,11 @@ String t(String key) => _map[api.language]?[key] ?? key;
 
 const Map<String, Map<String, String>> _map = {
   'he': {
+        'Tax ID': 'ח.פ / ע.מ',
+        'The invoice': 'החשבונית',
+        'Supplier name': 'שם הספק',
+        'Details': 'פרטים',
+        'Amounts': 'סכומים',
         // invoices
         'Invoices': 'חשבוניות',
         'Add invoice': 'הוספת חשבונית',
@@ -186,6 +191,11 @@ const Map<String, Map<String, String>> _map = {
     'delivered today': 'נמסרו היום',
   },
   'ar': {
+        'Tax ID': 'الرقم الضريبي',
+        'The invoice': 'الفاتورة',
+        'Supplier name': 'اسم المورّد',
+        'Details': 'تفاصيل',
+        'Amounts': 'المبالغ',
         // invoices
         'Invoices': 'الفواتير',
         'Add invoice': 'إضافة فاتورة',
