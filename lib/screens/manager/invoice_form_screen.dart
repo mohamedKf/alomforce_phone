@@ -41,10 +41,81 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   Uint8List? _fileBytes;
   String _fileName = '';
 
+  // Israeli VAT. A constant rather than a setting because it is set by law,
+  // not by this business -- but every field stays editable, so an invoice at
+  // an older rate can still be entered exactly as printed.
+  static const _vatRate = 0.18;
+
+  // Guards the listeners against each other: filling VAT from the subtotal
+  // must not fire the VAT listener and recompute the subtotal back.
+  bool _computing = false;
+
   bool _scanning = false;
   bool _saving = false;
   String? _error;
   String? _notice;
+
+  @override
+  void initState() {
+    super.initState();
+    _subtotal.addListener(_fromSubtotal);
+    _vat.addListener(_fromVat);
+    _total.addListener(_fromTotal);
+  }
+
+  static String _money(double v) => v.toStringAsFixed(2);
+
+  static double? _read(TextEditingController c) {
+    final raw = c.text.replaceAll(',', '').trim();
+    if (raw.isEmpty) return null;
+    return double.tryParse(raw);
+  }
+
+  void _set(TextEditingController c, double value) {
+    final text = _money(value);
+    if (c.text == text) return;
+    c.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+
+  /// Typing the amount before VAT fills the VAT and the total.
+  void _fromSubtotal() {
+    if (_computing) return;
+    final net = _read(_subtotal);
+    if (net == null) return;
+    _computing = true;
+    final vat = net * _vatRate;
+    _set(_vat, vat);
+    _set(_total, net + vat);
+    _computing = false;
+  }
+
+  /// Typing the total works backwards: the printed figure includes VAT, and
+  /// the office often has only that number to hand.
+  void _fromTotal() {
+    if (_computing) return;
+    final gross = _read(_total);
+    if (gross == null) return;
+    _computing = true;
+    final net = gross / (1 + _vatRate);
+    _set(_subtotal, net);
+    _set(_vat, gross - net);
+    _computing = false;
+  }
+
+  /// An edited VAT is taken as correct -- some invoices round differently, or
+  /// carry a mixed rate -- so the total follows it rather than overruling it.
+  void _fromVat() {
+    if (_computing) return;
+    final vat = _read(_vat);
+    final net = _read(_subtotal);
+    if (vat == null || net == null) return;
+    _computing = true;
+    _set(_total, net + vat);
+    _computing = false;
+  }
 
   @override
   void dispose() {
@@ -245,6 +316,9 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   }
 
   void _fill(Map<String, dynamic> f) {
+    // The three amounts arrive together and are already consistent; letting
+    // the listeners fire would recompute them from whichever landed last.
+    _computing = true;
     void set(TextEditingController c, String key) {
       final v = f[key];
       if (v != null && v.toString().isNotEmpty) c.text = v.toString();
@@ -259,6 +333,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     set(_total, 'total');
     final date = DateTime.tryParse((f['issued_at'] ?? '').toString());
     if (date != null) setState(() => _issued = date);
+    _computing = false;
   }
 
   // -- saving ------------------------------------------------------------
