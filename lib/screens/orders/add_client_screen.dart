@@ -19,12 +19,13 @@ class _AddClientScreenState extends State<AddClientScreen> {
   final _tax = TextEditingController();
   final _city = TextEditingController();
   final _address = TextEditingController();
+  final _mapLink = TextEditingController();
   bool _saving = false;
   String? _error;
 
   @override
   void dispose() {
-    for (final c in [_name, _phone, _tax, _city, _address]) {
+    for (final c in [_name, _phone, _tax, _city, _address, _mapLink]) {
       c.dispose();
     }
     super.dispose();
@@ -46,6 +47,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
         'tax_id': _tax.text.trim(),
         'city': _city.text.trim(),
         'delivery_address': _address.text.trim(),
+        // The server turns this into the delivery coordinate; the driver's
+        // Waze button then navigates to the pin instead of the street name.
+        'location_url': _mapLink.text.trim(),
       });
       if (mounted) Navigator.of(context).pop(created as Map);
     } catch (e) {
@@ -67,6 +71,15 @@ class _AddClientScreenState extends State<AddClientScreen> {
           _field(_tax, t('Tax ID')),
           _field(_city, t('City')),
           _field(_address, t('Delivery address'), lines: 2),
+          _field(_mapLink, t('Map link'), keyboard: TextInputType.url),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              t('Share the place from Google Maps, Waze or Apple Maps and '
+                  'paste the link. The driver is sent to this exact point.'),
+              style: const TextStyle(color: kMuted, fontSize: 12),
+            ),
+          ),
           if (_error != null) ...[
             const SizedBox(height: 8),
             Text(_error!, style: const TextStyle(color: kDanger)),

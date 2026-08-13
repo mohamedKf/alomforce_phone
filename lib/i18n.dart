@@ -11,6 +11,10 @@ String t(String key) => _map[api.language]?[key] ?? key;
 
 const Map<String, Map<String, String>> _map = {
   'he': {
+    // client map link
+    'Map link': 'קישור למפה',
+    'Share the place from Google Maps, Waze or Apple Maps and paste the link. The driver is sent to this exact point.':
+        'שתפו את המיקום מ-Google Maps, ווייז או מפות אפל והדביקו את הקישור. הנהג ינווט בדיוק לנקודה הזו.',
     // login screen
     'Password': 'סיסמה',
     'Enter your ID number and password.': 'הזינו מספר זהות וסיסמה.',
@@ -138,6 +142,10 @@ const Map<String, Map<String, String>> _map = {
     'delivered today': 'נמסרו היום',
   },
   'ar': {
+    // client map link
+    'Map link': 'رابط الموقع',
+    'Share the place from Google Maps, Waze or Apple Maps and paste the link. The driver is sent to this exact point.':
+        'شارك الموقع من خرائط Google أو ويز أو خرائط آبل والصق الرابط. سيصل السائق إلى هذه النقطة بالضبط.',
     // login screen
     'Password': 'كلمة المرور',
     'Enter your ID number and password.': 'أدخل رقم الهوية وكلمة المرور.',
