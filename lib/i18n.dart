@@ -11,6 +11,12 @@ String t(String key) => _map[api.language]?[key] ?? key;
 
 const Map<String, Map<String, String>> _map = {
   'he': {
+    // login screen
+    'Password': 'סיסמה',
+    'Enter your ID number and password.': 'הזינו מספר זהות וסיסמה.',
+    'Aluminium profiles — workshop': 'פרופילי אלומיניום — בית מלאכה',
+    'Your session has expired. Please sign in again.':
+        'החיבור פג. יש להתחבר מחדש.',
     // nav / tabs
     'Clock': 'שעון', 'Orders': 'הזמנות', 'Stock': 'מלאי', 'Me': 'שלי',
     'Time clock': 'שעון נוכחות', 'Orders to prepare': 'הזמנות להכנה',
@@ -132,6 +138,12 @@ const Map<String, Map<String, String>> _map = {
     'delivered today': 'נמסרו היום',
   },
   'ar': {
+    // login screen
+    'Password': 'كلمة المرور',
+    'Enter your ID number and password.': 'أدخل رقم الهوية وكلمة المرور.',
+    'Aluminium profiles — workshop': 'مقاطع الألمنيوم — الورشة',
+    'Your session has expired. Please sign in again.':
+        'انتهت الجلسة. يرجى تسجيل الدخول مجدداً.',
     'Clock': 'الساعة', 'Orders': 'الطلبات', 'Stock': 'المخزون', 'Me': 'حسابي',
     'Time clock': 'ساعة الدوام', 'Orders to prepare': 'طلبات للتحضير',
     'Clocked out': 'خارج الدوام', 'Clocked in': 'داخل الدوام',

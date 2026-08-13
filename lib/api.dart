@@ -157,6 +157,23 @@ class Api {
         if (_access != null) 'Authorization': 'Bearer $_access',
       };
 
+  /// Called when the session can no longer be recovered, so the app can show
+  /// the login screen. Set by AppState; unset in tests.
+  void Function()? onAuthLost;
+
+  /// The refresh token is dead too, so nothing here can be signed again.
+  ///
+  /// Without this a 401 fell through to _json() and surfaced SimpleJWT's own
+  /// wording -- "Given token not valid for any token type" -- on every screen,
+  /// with the dead tokens still in storage, so the app stayed stuck on that
+  /// error until someone found the sign-out button.
+  Future<Never> _sessionLost() async {
+    await logout();
+    onAuthLost?.call();
+    throw ApiError('Your session has expired. Please sign in again.',
+        status: 401);
+  }
+
   Future<dynamic> get(String path, {Map<String, String>? query, bool retry = true}) async {
     final uri = _u(path).replace(queryParameters: query);
     http.Response r;
@@ -165,8 +182,9 @@ class Api {
     } catch (_) {
       throw ApiError('Network error. Check your connection.');
     }
-    if (r.statusCode == 401 && retry && await _doRefresh()) {
-      return get(path, query: query, retry: false);
+    if (r.statusCode == 401 && retry) {
+      if (await _doRefresh()) return get(path, query: query, retry: false);
+      await _sessionLost();
     }
     return _json(r);
   }
@@ -180,8 +198,9 @@ class Api {
     } catch (_) {
       throw ApiError('Network error. Check your connection.');
     }
-    if (r.statusCode == 401 && retry && await _doRefresh()) {
-      return post(path, body, retry: false);
+    if (r.statusCode == 401 && retry) {
+      if (await _doRefresh()) return post(path, body, retry: false);
+      await _sessionLost();
     }
     return _json(r);
   }
@@ -195,8 +214,9 @@ class Api {
     } catch (_) {
       throw ApiError('Network error. Check your connection.');
     }
-    if (r.statusCode == 401 && retry && await _doRefresh()) {
-      return patch(path, body, retry: false);
+    if (r.statusCode == 401 && retry) {
+      if (await _doRefresh()) return patch(path, body, retry: false);
+      await _sessionLost();
     }
     return _json(r);
   }
@@ -208,8 +228,9 @@ class Api {
     } catch (_) {
       throw ApiError('Network error. Check your connection.');
     }
-    if (r.statusCode == 401 && retry && await _doRefresh()) {
-      return getBytes(path, retry: false);
+    if (r.statusCode == 401 && retry) {
+      if (await _doRefresh()) return getBytes(path, retry: false);
+      await _sessionLost();
     }
     if (r.statusCode >= 400) throw ApiError(_describe(r), status: r.statusCode);
     return r.bodyBytes;
@@ -235,10 +256,13 @@ class Api {
     } catch (_) {
       throw ApiError('Network error. Check your connection.');
     }
-    if (r.statusCode == 401 && retry && await _doRefresh()) {
-      return uploadBytes(path,
-          field: field, bytes: bytes, filename: filename,
-          fields: fields, retry: false);
+    if (r.statusCode == 401 && retry) {
+      if (await _doRefresh()) {
+        return uploadBytes(path,
+            field: field, bytes: bytes, filename: filename,
+            fields: fields, retry: false);
+      }
+      await _sessionLost();
     }
     return _json(r);
   }

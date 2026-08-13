@@ -9,6 +9,10 @@ class AppState extends ChangeNotifier {
   String get role => api.role;
 
   Future<void> boot() async {
+    // A dead session has to reach the UI: the API layer clears the tokens but
+    // only the app can swap the screen, so without this the user sat on an
+    // error page with no way back to the login form.
+    api.onAuthLost = notifyListeners;
     await api.loadServer();
     // Dev convenience: override the server and auto-login from --dart-define,
     // so a simulator run can start straight in the app. Nothing is hardcoded;
