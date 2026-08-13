@@ -60,6 +60,13 @@ Widget homeForRole(String role) {
     case 'warehouse':
     case 'driver':
       return const WarehouseHome();
+    // Office shares the manager's home. Every screen it contains -- the
+    // dashboard, orders, stock, invoices, corrections -- is reachable by an
+    // office user, and the one endpoint they are refused (/staff/) is not
+    // called anywhere in this app. The books are an office job above all, so
+    // sending them to a placeholder while the invoices page existed made no
+    // sense.
+    case 'office':
     case 'manager':
       return const ManagerHome();
     default:
