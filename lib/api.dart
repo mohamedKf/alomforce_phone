@@ -132,6 +132,55 @@ class Api {
     await _persist();
   }
 
+  /// Create an account and sign in with it.
+  ///
+  /// The server returns the same token pair as a login, so there is no reason
+  /// to make somebody type their details and then immediately type them again.
+  Future<void> register({
+    required bool asManager,
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String password,
+    String businessName = '',
+    String idNumber = '',
+    String registerCode = '',
+  }) async {
+    final body = <String, dynamic>{
+      'account': asManager ? 'manager' : 'client',
+      'first_name': firstName,
+      'last_name': lastName,
+      'phone': phone,
+      'password': password,
+      'language': _language,
+    };
+    if (asManager) {
+      body['id_number'] = idNumber;
+      body['register_code'] = registerCode;
+    } else {
+      body['business_name'] = businessName;
+    }
+
+    http.Response r;
+    try {
+      r = await http
+          .post(_u('/auth/register/'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode(body))
+          .timeout(const Duration(seconds: 20));
+    } catch (_) {
+      throw ApiError('Cannot reach the server. Check the address and Wi-Fi.');
+    }
+    if (r.statusCode != 201) {
+      throw ApiError(_describe(r), status: r.statusCode);
+    }
+    final d = jsonDecode(r.body) as Map<String, dynamic>;
+    _access = d['access'];
+    _refresh = d['refresh'];
+    user = (d['user'] ?? {}) as Map<String, dynamic>;
+    await _persist();
+  }
+
   Future<bool> _doRefresh() async {
     if (_refresh == null) return false;
     try {

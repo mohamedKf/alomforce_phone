@@ -6,6 +6,7 @@ import '../i18n.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'register_screen.dart';
 import 'server_settings_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -75,6 +76,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 28),
                         _card(context),
                         const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                  builder: (_) => const RegisterScreen())),
+                          child: Text(t('Create an account'),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600)),
+                        ),
                         TextButton.icon(
                           onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => const ServerSettingsScreen())),

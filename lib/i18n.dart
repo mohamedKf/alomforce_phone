@@ -11,6 +11,23 @@ String t(String key) => _map[api.language]?[key] ?? key;
 
 const Map<String, Map<String, String>> _map = {
   'he': {
+        // sign-up
+        'Create an account': 'פתיחת חשבון',
+        'Create account': 'פתיחת חשבון',
+        'Creating…': 'יוצר…',
+        'Client': 'לקוח',
+        'First name': 'שם פרטי',
+        'Last name': 'שם משפחה',
+        'Repeat password': 'אימות סיסמה',
+        'Register code': 'קוד רישום',
+        'Ask the business owner for the register code.': 'בקשו את קוד הרישום מבעל העסק.',
+        'Enter your first and last name.': 'הזינו שם פרטי ושם משפחה.',
+        'Enter your business name.': 'הזינו את שם העסק.',
+        'Enter your ID number.': 'הזינו מספר זהות.',
+        'Enter the register code.': 'הזינו את קוד הרישום.',
+        'Enter a phone number.': 'הזינו מספר טלפון.',
+        'Use a password of at least 8 characters.': 'בחרו סיסמה באורך 8 תווים לפחות.',
+        'The two passwords do not match.': 'הסיסמאות אינן תואמות.',
     // delivery note sending
     'Send the delivery note': 'שליחת תעודת המשלוח',
     'Send to': 'שלח אל',
@@ -147,6 +164,24 @@ const Map<String, Map<String, String>> _map = {
     'delivered today': 'נמסרו היום',
   },
   'ar': {
+        // sign-up
+        'Create an account': 'إنشاء حساب',
+        'Create account': 'إنشاء حساب',
+        'Creating…': 'جارٍ الإنشاء…',
+        'Client': 'عميل',
+        'Manager': 'مدير',
+        'First name': 'الاسم الأول',
+        'Last name': 'اسم العائلة',
+        'Repeat password': 'تأكيد كلمة المرور',
+        'Register code': 'رمز التسجيل',
+        'Ask the business owner for the register code.': 'اطلب رمز التسجيل من صاحب العمل.',
+        'Enter your first and last name.': 'أدخل الاسم الأول واسم العائلة.',
+        'Enter your business name.': 'أدخل اسم العمل.',
+        'Enter your ID number.': 'أدخل رقم الهوية.',
+        'Enter the register code.': 'أدخل رمز التسجيل.',
+        'Enter a phone number.': 'أدخل رقم الهاتف.',
+        'Use a password of at least 8 characters.': 'استخدم كلمة مرور من 8 أحرف على الأقل.',
+        'The two passwords do not match.': 'كلمتا المرور غير متطابقتين.',
     // delivery note sending
     'Send the delivery note': 'إرسال سند التسليم',
     'Send to': 'إرسال إلى',
