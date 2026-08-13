@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Release signing. The keystore and its passwords must never be committed:
+# anyone holding them can publish an update that Android accepts as this app.
+# The keystore itself lives outside the repo (see android/key.properties).
+android/key.properties
+*.jks
+*.keystore
