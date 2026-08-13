@@ -171,7 +171,12 @@ class _SignaturePadState extends State<SignaturePad> {
         field: 'signature',
         bytes: png,
         filename: 'signature.png',
-        fields: {'recipient_name': _name.text.trim()},
+        fields: {
+          'recipient_name': _name.text.trim(),
+          // Stored server-side, so the note can be re-sent to the same
+          // person later from an app that has since been restarted.
+          'recipient_phone': _phone.text.trim(),
+        },
       );
       final out = <String, dynamic>{
         if (result is Map) ...Map<String, dynamic>.from(result),

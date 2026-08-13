@@ -11,6 +11,11 @@ String t(String key) => _map[api.language]?[key] ?? key;
 
 const Map<String, Map<String, String>> _map = {
   'he': {
+    // delivery note sending
+    'Send the delivery note': 'שליחת תעודת המשלוח',
+    'Send to': 'שלח אל',
+    'Send to the person who signed': 'שלח למי שחתם',
+    'Send to the client': 'שלח ללקוח',
     // client map link
     'Map link': 'קישור למפה',
     'Share the place from Google Maps, Waze or Apple Maps and paste the link. The driver is sent to this exact point.':
@@ -142,6 +147,11 @@ const Map<String, Map<String, String>> _map = {
     'delivered today': 'נמסרו היום',
   },
   'ar': {
+    // delivery note sending
+    'Send the delivery note': 'إرسال سند التسليم',
+    'Send to': 'إرسال إلى',
+    'Send to the person who signed': 'إرسال لمن وقّع',
+    'Send to the client': 'إرسال إلى العميل',
     // client map link
     'Map link': 'رابط الموقع',
     'Share the place from Google Maps, Waze or Apple Maps and paste the link. The driver is sent to this exact point.':

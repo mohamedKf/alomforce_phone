@@ -82,13 +82,25 @@ class _DeliveryDetailState extends State<DeliveryDetail> {
               ],
             ]),
             const SizedBox(height: 10),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  backgroundColor: const Color(0xFF25D366)),
-              icon: const Icon(Icons.chat),
-              label: Text(t('Send note on WhatsApp')),
-              onPressed: _sendWhatsApp,
+            // One button per person the note goes to. WhatsApp opens outside
+            // the app and handles one chat at a time, so this cannot be a
+            // single "send to both" -- two buttons is the honest shape, and it
+            // doubles as the re-send: they stay here for any signed delivery.
+            Text(t('Send the delivery note'),
+                style: const TextStyle(color: kMuted, fontSize: 13)),
+            const SizedBox(height: 6),
+            _sendButton(
+              label: _recipientName.isEmpty
+                  ? t('Send to the person who signed')
+                  : '${t('Send to')} $_recipientName',
+              phone: _recipientPhone,
+            ),
+            const SizedBox(height: 8),
+            _sendButton(
+              label: _clientContact.isEmpty
+                  ? t('Send to the client')
+                  : '${t('Send to')} $_clientContact',
+              phone: _clientPhone,
             ),
           ] else ...[
             if (status == 'ready')
@@ -152,24 +164,49 @@ class _DeliveryDetailState extends State<DeliveryDetail> {
         _d['status'] = 'delivered';
         _d['status_display'] = 'Delivered';
         _d['public_url'] = result['public_url'] ?? _d['public_url'];
-        // The number the driver entered/edited on the signature screen.
-        if ((result['to_phone'] ?? '').toString().isNotEmpty) {
-          _d['whatsapp_to'] = result['to_phone'];
+        // Recipient details come back from the server, so the send buttons
+        // below work from stored data rather than this screen's memory.
+        for (final k in ['recipient_name', 'recipient_phone', 'client_phone',
+            'client_contact_name']) {
+          if ((result[k] ?? '').toString().isNotEmpty) _d[k] = result[k];
         }
       });
-      // Send the client the signed note right away.
-      _sendWhatsApp();
+      // Straight to the person who just signed; the client's own contact is
+      // one tap away on the button underneath.
+      _sendWhatsApp(_recipientPhone);
     }
   }
 
-  Future<void> _sendWhatsApp() async {
+  // Who the note goes to. Both come from the server, so a re-send still works
+  // days later in an app that has been restarted since the signature.
+  String get _recipientName => (_d['recipient_name'] ?? '').toString().trim();
+  String get _recipientPhone => (_d['recipient_phone'] ?? '').toString().trim();
+  String get _clientContact =>
+      (_d['client_contact_name'] ?? '').toString().trim();
+  String get _clientPhone => (_d['client_phone'] ?? '').toString().trim();
+
+  Widget _sendButton({required String label, required String phone}) {
+    return FilledButton.icon(
+      style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(52),
+          backgroundColor: const Color(0xFF25D366)),
+      icon: const Icon(Icons.chat),
+      label: Text(label, overflow: TextOverflow.ellipsis),
+      onPressed: () => _sendWhatsApp(phone),
+    );
+  }
+
+  /// Open WhatsApp with the signed note's link, addressed to [phone].
+  ///
+  /// An empty number still opens WhatsApp with the message ready, so the
+  /// driver can pick the chat by hand rather than hitting a dead end.
+  Future<void> _sendWhatsApp(String rawPhone) async {
     final link = (_d['public_url'] ?? '').toString();
     final msg = t('Delivery note {number} for {client}. View & download: {link}')
         .replaceFirst('{number}', _d['number']?.toString() ?? '')
         .replaceFirst('{client}', _d['client_name']?.toString() ?? '')
         .replaceFirst('{link}', link);
-    final phone = _waPhone(
-        (_d['whatsapp_to'] ?? _d['client_phone'] ?? '').toString());
+    final phone = _waPhone(rawPhone);
     final url = phone.isEmpty
         ? 'https://wa.me/?text=${Uri.encodeComponent(msg)}'
         : 'https://wa.me/$phone?text=${Uri.encodeComponent(msg)}';
