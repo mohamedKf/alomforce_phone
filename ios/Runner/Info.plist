@@ -67,6 +67,8 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>The app uses the camera to scan the server QR code.</string>
+	<string>The app uses the camera to scan the server QR code and to photograph supplier invoices.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>The app can attach an invoice you already photographed.</string>
 </dict>
 </plist>

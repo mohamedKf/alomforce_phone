@@ -39,6 +39,8 @@ dependencies:
   intl: ^0.20.2
   url_launcher: ^6.3.0     # open Waze / WhatsApp deep links
   mobile_scanner: ^7.4.0
+  image_picker: ^1.1.2           # invoice photos: camera or gallery
+  file_picker: ^8.1.4            # invoice documents already on the phone
 
 dev_dependencies:
   flutter_test:

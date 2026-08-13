@@ -11,6 +11,7 @@ import '../warehouse/orders_to_prepare.dart';
 import '../warehouse/scan_screen.dart';
 import '../warehouse/stock_screen.dart';
 import 'manager_dashboard.dart';
+import 'invoices_screen.dart';
 import 'manager_team.dart';
 
 class ManagerHome extends StatefulWidget {
@@ -32,10 +33,12 @@ class _ManagerHomeState extends State<ManagerHome> {
       const ManagerTeam(),
       const OrdersToPrepare(),
       const StockScreen(),
+      const InvoicesScreen(),
       const _ManagerMe(),
     ];
     final titles = [
-      t('Dashboard'), t('Team'), t('Orders'), t('Stock'), t('Me'),
+      t('Dashboard'), t('Team'), t('Orders'), t('Stock'), t('Invoices'),
+      t('Me'),
     ];
     final destinations = [
       NavigationDestination(
@@ -54,6 +57,10 @@ class _ManagerHomeState extends State<ManagerHome> {
           icon: const Icon(Icons.inventory_2_outlined),
           selectedIcon: const Icon(Icons.inventory_2),
           label: t('Stock')),
+      NavigationDestination(
+          icon: const Icon(Icons.receipt_long_outlined),
+          selectedIcon: const Icon(Icons.receipt_long),
+          label: t('Invoices')),
       NavigationDestination(
           icon: const Icon(Icons.person_outline),
           selectedIcon: const Icon(Icons.person),
