@@ -113,8 +113,26 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         setState(() => _notice = (r['detail'] ?? '').toString());
         return;
       }
-      _fill(Map<String, dynamic>.from(r['fields'] as Map));
-      setState(() => _notice = t('Read from the photo. Check it before saving.'));
+      final fields = Map<String, dynamic>.from(r['fields'] as Map);
+      if (fields.values.every((v) => v == null || '$v'.isEmpty)) {
+        setState(() => _notice = t('Nothing could be read from that photo. '
+            'Enter the details by hand.'));
+        return;
+      }
+      // Nothing is written into the form until the person says so. They are
+      // holding the paper: they are the only one who can tell whether the
+      // model read 1,180 or 1,780, and a wrong figure they never saw would go
+      // into the books with their name on it.
+      if (!mounted) return;
+      final approved = await _confirmScan(fields);
+      if (approved != true) {
+        setState(() => _notice = t('Reading discarded. Enter the details by '
+            'hand.'));
+        return;
+      }
+      _fill(fields);
+      setState(() => _notice = t('Filled from the photo. Check it before '
+          'saving.'));
     } catch (e) {
       // The scan is a convenience; losing it must not lose the invoice.
       setState(() => _notice = t('Could not read the photo. Enter the details '
@@ -122,6 +140,108 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     } finally {
       if (mounted) setState(() => _scanning = false);
     }
+  }
+
+  /// Show what was read and let the person accept or reject it.
+  ///
+  /// Deliberately a decision, not a notification: the alternative is the form
+  /// silently changing under them, which is how a misread total gets saved
+  /// without anyone having looked at it.
+  Future<bool?> _confirmScan(Map<String, dynamic> f) {
+    final labels = <String, String>{
+      'party_name': t('Supplier'),
+      'number': t('Invoice number'),
+      'party_tax_id': t('Tax ID'),
+      'issued_at': t('Invoice date'),
+      'category': t('Category'),
+      'subtotal': t('Before VAT'),
+      'vat': t('VAT'),
+      'total': t('Total'),
+    };
+    final found = labels.entries
+        .where((e) => (f[e.key] ?? '').toString().isNotEmpty)
+        .toList();
+
+    return showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              const Icon(Icons.auto_awesome, size: 18, color: kBlue),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(t('Read from the photo'),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 16, color: kInk)),
+              ),
+            ]),
+            const SizedBox(height: 4),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(t('Check these against the paper before using them.'),
+                  style: const TextStyle(color: kMuted, fontSize: 12)),
+            ),
+            const SizedBox(height: 14),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    for (final e in found)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 120,
+                              child: Text(e.value,
+                                  style: const TextStyle(
+                                      color: kMuted, fontSize: 13)),
+                            ),
+                            Expanded(
+                              child: Text('${f[e.key]}',
+                                  style: TextStyle(
+                                      color: kInk,
+                                      fontSize: e.key == 'total' ? 17 : 14,
+                                      fontWeight: e.key == 'total'
+                                          ? FontWeight.w700
+                                          : FontWeight.w500)),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48)),
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(t('Type it myself')),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                      backgroundColor: kBlue),
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(t('Use these')),
+                ),
+              ),
+            ]),
+          ]),
+        ),
+      ),
+    );
   }
 
   void _fill(Map<String, dynamic> f) {
