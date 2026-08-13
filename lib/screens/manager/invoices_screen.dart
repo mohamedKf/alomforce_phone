@@ -65,8 +65,10 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // No AppBar here: this screen is a tab inside ManagerHome, which already
+    // shows the title. Its own AppBar produced a second identical header.
     return Scaffold(
-      appBar: AppBar(title: Text(t('Invoices'))),
+      backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _add,
         backgroundColor: kBlue,
@@ -146,7 +148,10 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
               for (var m = 1; m <= 12; m++)
                 DropdownMenuItem(
                     value: m,
-                    child: Text(DateFormat.MMMM(Intl.getCurrentLocale())
+                    // api.language, not Intl.getCurrentLocale(): the latter
+                    // reads the device locale, which showed English month
+                    // names on a Hebrew screen.
+                    child: Text(DateFormat.MMMM(api.language)
                         .format(DateTime(2000, m)))),
             ],
             onChanged: (v) {

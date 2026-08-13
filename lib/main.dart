@@ -1,5 +1,6 @@
 // main.dart — AlomForce phone app. Login, then a home per staff role.
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'api.dart';
@@ -12,6 +13,9 @@ import 'theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Loads month and day names for every locale, so DateFormat can render
+  // Hebrew and Arabic dates rather than throwing on an unloaded locale.
+  initializeDateFormatting();
   appState.boot();
   runApp(const AlomForceApp());
 }
