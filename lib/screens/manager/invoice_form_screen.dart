@@ -54,10 +54,14 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   bool _saving = false;
   String? _error;
   String? _notice;
+  String? _numberError;
 
   @override
   void initState() {
     super.initState();
+    _number.addListener(() {
+      if (_numberError != null) setState(() => _numberError = null);
+    });
     _subtotal.addListener(_fromSubtotal);
     _vat.addListener(_fromVat);
     _total.addListener(_fromTotal);
@@ -440,7 +444,9 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
               _field(_party, t('Supplier name')),
               const SizedBox(height: 12),
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(child: _field(_number, t('Invoice number'))),
+                Expanded(
+                    child: _field(_number, t('Invoice number'),
+                        error: _numberError)),
                 const SizedBox(width: 12),
                 Expanded(child: _field(_taxId, t('Tax ID'),
                     keyboard: TextInputType.number)),
@@ -564,7 +570,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   }
 
   Widget _field(TextEditingController c, String label,
-      {TextInputType? keyboard, bool emphasis = false}) {
+      {TextInputType? keyboard, bool emphasis = false, String? error}) {
     return TextField(
       controller: c,
       keyboardType: keyboard,
@@ -575,6 +581,8 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
       ),
       decoration: InputDecoration(
         labelText: label,
+        errorText: error,
+        errorMaxLines: 3,
         prefixText: emphasis ? '₪ ' : null,
         isDense: true,
         contentPadding:
