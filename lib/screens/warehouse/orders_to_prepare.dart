@@ -184,7 +184,7 @@ class _OrderCard extends StatelessWidget {
                   const SizedBox(width: 16),
                   const Icon(Icons.checklist, size: 16, color: kMuted),
                   const SizedBox(width: 4),
-                  Text('$prepared / ${lines.length} lines',
+                  Text('$prepared / ${lines.length} ${t('lines')}',
                       style: const TextStyle(color: kMuted, fontSize: 13)),
                   const Spacer(),
                   if ((order['required_by'] ?? '') != '')

@@ -110,7 +110,7 @@ class _SignaturePadState extends State<SignaturePad> {
                       ? null
                       : () => setState(() => _strokes.clear()),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Clear'),
+                  label: Text(t('Clear')),
                 ),
               ),
               const SizedBox(width: 12),

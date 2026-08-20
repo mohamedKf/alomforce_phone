@@ -1,6 +1,8 @@
 // role_placeholder.dart — shown for roles whose phone screens aren't built yet.
 import 'package:flutter/material.dart';
 
+import '../i18n.dart';
+
 import '../state.dart';
 import '../theme.dart';
 
@@ -36,13 +38,13 @@ class RolePlaceholder extends StatelessWidget {
             children: [
               const Icon(Icons.construction, size: 60, color: kMuted),
               const SizedBox(height: 16),
-              Text('The $label app is coming soon.',
+              Text('$label — ${t('coming soon.')}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 17, color: kInk)),
               const SizedBox(height: 8),
-              const Text('The warehouse worker screens are ready first.',
+              Text(t('The warehouse worker screens are ready first.'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: kMuted)),
+                  style: const TextStyle(color: kMuted)),
             ],
           ),
         ),

@@ -5,6 +5,8 @@
 // real device this is what a scanned QR resolves to anyway.
 import 'package:flutter/material.dart';
 
+import '../../i18n.dart';
+
 import '../../theme.dart';
 import 'profile_detail.dart';
 
@@ -38,21 +40,21 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Find a profile')),
+      appBar: AppBar(title: Text(t('Find a profile'))),
       body: Column(
         children: [
-          const Expanded(
+          Expanded(
             child: Center(
               child: Padding(
-                padding: EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.tag, size: 56, color: kMuted),
-                    SizedBox(height: 14),
-                    Text('Enter the profile number from the label.',
+                    const Icon(Icons.tag, size: 56, color: kMuted),
+                    const SizedBox(height: 14),
+                    Text(t('Enter the profile number from the label.'),
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: kMuted, fontSize: 15)),
+                        style: const TextStyle(color: kMuted, fontSize: 15)),
                   ],
                 ),
               ),
@@ -64,8 +66,9 @@ class _ScanScreenState extends State<ScanScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Profile number',
-                    style: TextStyle(fontWeight: FontWeight.w600, color: kInk)),
+                Text(t('Profile number'),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, color: kInk)),
                 const SizedBox(height: 10),
                 Row(
                   children: [

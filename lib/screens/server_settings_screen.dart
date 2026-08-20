@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../i18n.dart';
 import '../widgets.dart';
 
 class ServerSettingsScreen extends StatefulWidget {
@@ -41,12 +42,12 @@ class _ServerSettingsScreenState extends State<ServerSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Server settings')),
+      appBar: AppBar(title: Text(t('Server settings'))),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('Backend address',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+          Text(t('Backend address'),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
           const SizedBox(height: 8),
           TextField(
             controller: _url,
@@ -58,10 +59,10 @@ class _ServerSettingsScreenState extends State<ServerSettingsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Use the AlomForce server address. On the same Wi-Fi as the office '
-            'computer, that is its LAN IP and port, e.g. http://192.168.1.10:8000',
-            style: TextStyle(color: Color(0xFF6B7785), fontSize: 13),
+          Text(
+            t('Use the AlomForce server address. On the same Wi-Fi as the '
+                'office computer, that is its LAN IP and port.'),
+            style: const TextStyle(color: Color(0xFF6B7785), fontSize: 13),
           ),
           const SizedBox(height: 20),
           FilledButton(
@@ -71,7 +72,7 @@ class _ServerSettingsScreenState extends State<ServerSettingsScreen> {
                     height: 22,
                     width: 22,
                     child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                : const Text('Test & save'),
+                : Text(t('Test & save')),
           ),
         ],
       ),

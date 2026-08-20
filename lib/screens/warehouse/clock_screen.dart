@@ -213,7 +213,7 @@ class _ClockScreenState extends State<ClockScreen> {
               children: [
                 const Icon(Icons.payments_outlined, size: 18, color: kNavy),
                 const SizedBox(width: 6),
-                Text('Pay — $month',
+                Text('${t('Pay')} — $month',
                     style: const TextStyle(fontWeight: FontWeight.w700, color: kInk)),
                 const Spacer(),
                 Text('₪ ${_money(p['total_pay'])}',
@@ -233,10 +233,10 @@ class _ClockScreenState extends State<ClockScreen> {
                   '₪ ${_money(p['overtime_pay'])}'),
             ],
             if (!ot)
-              const Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Text('Overtime not paid for this worker',
-                    style: TextStyle(color: kMuted, fontSize: 12)),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(t('Overtime not paid for this worker'),
+                    style: const TextStyle(color: kMuted, fontSize: 12)),
               ),
             const SizedBox(height: 6),
             Text('$reg ${t('regular hours')}',
@@ -279,11 +279,12 @@ class _ClockScreenState extends State<ClockScreen> {
   List<Widget> _historyList() {
     final rows = _history ?? [];
     if (rows.isEmpty) {
-      return const [
+      return [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Center(
-              child: Text('No shifts yet.', style: TextStyle(color: kMuted))),
+              child: Text(t('No shifts yet.'),
+                  style: const TextStyle(color: kMuted))),
         )
       ];
     }

@@ -120,7 +120,7 @@ class _CorrectionRequestScreenState extends State<CorrectionRequestScreen> {
             maxLines: 3,
             decoration: InputDecoration(
                 labelText: t('Reason'),
-                hintText: 'e.g. Forgot to clock out',
+                hintText: t('e.g. Forgot to clock out'),
                 border: const OutlineInputBorder()),
           ),
           if (_error != null) ...[
