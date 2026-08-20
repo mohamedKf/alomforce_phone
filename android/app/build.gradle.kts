@@ -11,6 +11,7 @@ val keystoreProperties = Properties().apply {
 
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -23,6 +24,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // flutter_local_notifications uses java.time, which minSdk 24 devices
+        // do not have; desugaring backports it. Required by that library, not
+        // optional -- the release build fails outright without it.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -66,6 +71,11 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+dependencies {
+    // The backported java.time implementation the option above switches on.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {

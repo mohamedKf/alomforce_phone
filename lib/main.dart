@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'api.dart';
+import 'push.dart';
 import 'screens/login_screen.dart';
 import 'screens/manager/manager_home.dart';
 import 'screens/role_placeholder.dart';
@@ -16,6 +17,10 @@ void main() {
   // Loads month and day names for every locale, so DateFormat can render
   // Hebrew and Arabic dates rather than throwing on an unloaded locale.
   initializeDateFormatting();
+  // Set up the notification channel and background handler before anything is
+  // signed in. Registering a device with the server happens later, once there
+  // is a user to register it to.
+  push.start();
   appState.boot();
   runApp(const AlomForceApp());
 }

@@ -270,6 +270,25 @@ class Api {
     return _json(r);
   }
 
+  /// DELETE with a body -- unusual, but the device endpoint identifies the
+  /// registration to remove by the token in it, and a token is too long to
+  /// put in a URL.
+  Future<dynamic> delete(String path, Map body, {bool retry = true}) async {
+    http.Response r;
+    try {
+      r = await http
+          .delete(_u(path), headers: _headers, body: jsonEncode(body))
+          .timeout(const Duration(seconds: 20));
+    } catch (_) {
+      throw ApiError('Network error. Check your connection.');
+    }
+    if (r.statusCode == 401 && retry) {
+      if (await _doRefresh()) return delete(path, body, retry: false);
+      await _sessionLost();
+    }
+    return _json(r);
+  }
+
   Future<Uint8List> getBytes(String path, {bool retry = true}) async {
     http.Response r;
     try {

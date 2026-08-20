@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'api.dart';
+import 'push.dart';
 
 class AppState extends ChangeNotifier {
   bool booting = true;
@@ -34,16 +35,28 @@ class AppState extends ChangeNotifier {
       await api.tryRestore();
     }
     booting = false;
+    // A restored session is still a signed-in user, and the Firebase token can
+    // change between launches -- so re-register rather than assuming the one
+    // sent at the original login is still current. Not awaited: the app must
+    // not wait on Firebase to draw its first screen.
+    if (api.isLoggedIn) push.registerForUser();
     notifyListeners();
   }
 
-  void onLoggedIn() => notifyListeners();
+  void onLoggedIn() {
+    push.registerForUser();
+    notifyListeners();
+  }
 
   /// Rebuild the whole app (e.g. after the language changed) so the new locale
   /// and text direction take effect immediately.
   void languageChanged() => notifyListeners();
 
   Future<void> signOut() async {
+    // Before logout, not after: the request that removes this registration has
+    // to be authenticated, and logout throws the tokens away. Getting this
+    // order wrong leaves a shared phone notifying whoever used it last.
+    await push.unregister();
     await api.logout();
     notifyListeners();
   }
