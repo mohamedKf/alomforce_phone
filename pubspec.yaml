@@ -54,6 +54,11 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
+  # Generates every Android and iOS icon size from one source image.
+  # Run `dart run flutter_launcher_icons` after replacing the files in
+  # assets/icon/ -- see the README there for what they need to be.
+  flutter_launcher_icons: ^0.14.4
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -102,3 +107,19 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+
+# Icon generation. Android 8+ draws an adaptive icon: the foreground is the
+# mark alone on transparency, and the system masks it to whatever shape the
+# launcher uses -- circle, squircle, teardrop. Giving it the full square image
+# would crop the edges off, which is why the foreground is separate.
+#
+# iOS refuses icons with an alpha channel, so remove_alpha_ios flattens it.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/alomforce.png"
+  adaptive_icon_background: "#12202E"
+  adaptive_icon_foreground: "assets/icon/alomforce_foreground.png"
+  remove_alpha_ios: true
+  min_sdk_android: 24
