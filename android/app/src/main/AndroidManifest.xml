@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Core networking: the app talks to the AlomForce backend over HTTPS.
+         Declared explicitly so it never depends on a plugin (e.g. Firebase)
+         contributing it to the merged manifest. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Android 13 and later: without this the app has no notification toggle
          in system settings at all, so there is nothing for anyone to switch on. -->

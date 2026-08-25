@@ -195,6 +195,11 @@ const Map<String, Map<String, String>> _map = {
     'Approve': 'אשר', 'Reject': 'דחה',
     'Request approved.': 'הבקשה אושרה.', 'Request rejected.': 'הבקשה נדחתה.',
     'Manager': 'מנהל', 'Clock in and out': 'כניסה ויציאה',
+    // registration (invite only)
+    'Registration is by invite': 'ההרשמה בהזמנה בלבד',
+    'Ask your provider for a register code, then try again.':
+        'בקשו מהספק קוד הרשמה ונסו שוב.',
+    'Back': 'חזרה',
     // manager — active drivers
     'Active drivers': 'נהגים פעילים', 'out for delivery': 'יצאו למשלוח',
     'ready to load': 'מוכן להעמסה', 'No drivers.': 'אין נהגים.',
