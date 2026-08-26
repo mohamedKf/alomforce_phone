@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../api.dart';
 import '../../i18n.dart';
 import '../../state.dart';
+import '../../widgets.dart';
 import '../../theme.dart';
 import '../settings_screen.dart';
 import '../warehouse/orders_to_prepare.dart';
@@ -79,7 +80,12 @@ class _ManagerHomeState extends State<ManagerHome> {
           ),
         ],
       ),
-      body: pages[_tab],
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: pages[_tab]),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),

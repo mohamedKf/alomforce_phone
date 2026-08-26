@@ -195,6 +195,10 @@ const Map<String, Map<String, String>> _map = {
     'Approve': 'אשר', 'Reject': 'דחה',
     'Request approved.': 'הבקשה אושרה.', 'Request rejected.': 'הבקשה נדחתה.',
     'Manager': 'מנהל', 'Clock in and out': 'כניסה ויציאה',
+    // offline cache / sync
+    'Offline — showing saved data': 'לא מקוון — מוצג מידע שמור',
+    'Offline — {n} change(s) will sync': 'לא מקוון — {n} שינויים יסונכרנו',
+    'Syncing {n} change(s)…': 'מסנכרן {n} שינויים…',
     // registration (invite only)
     'Registration is by invite': 'ההרשמה בהזמנה בלבד',
     'Ask your provider for a register code, then try again.':

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../api.dart';
 import '../../i18n.dart';
+import '../../widgets.dart';
 import '../../state.dart';
 import '../../theme.dart';
 import '../driver/driver_home.dart';
@@ -76,7 +77,12 @@ class _WarehouseHomeState extends State<WarehouseHome> {
           ),
         ],
       ),
-      body: pages[_tab],
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: pages[_tab]),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),

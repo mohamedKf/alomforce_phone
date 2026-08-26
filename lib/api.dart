@@ -9,6 +9,19 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import 'config.dart';
+import 'offline.dart';
+
+/// Writes that are safe to make offline and replay later: idempotent or
+/// low-harm-on-duplicate. Value-creating writes (stock movements, order /
+/// invoice / client creation) are deliberately NOT here — a replayed duplicate
+/// would double-count or create twice, and they need a live server result.
+bool _isQueueable(String path) {
+  return path.contains('/attendance/clock_in') ||
+      path.contains('/attendance/clock_out') ||
+      path.contains('/set_status') ||
+      path.contains('/line_action') ||
+      path.contains('/corrections');
+}
 
 class ApiError implements Exception {
   final String message;
@@ -223,19 +236,34 @@ class Api {
         status: 401);
   }
 
+  String _cacheKey(String path, Map<String, String>? query) {
+    if (query == null || query.isEmpty) return path;
+    final keys = query.keys.toList()..sort();
+    return '$path?${keys.map((k) => '$k=${query[k]}').join('&')}';
+  }
+
   Future<dynamic> get(String path, {Map<String, String>? query, bool retry = true}) async {
     final uri = _u(path).replace(queryParameters: query);
     http.Response r;
     try {
       r = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 20));
     } catch (_) {
+      // Offline: hand back the last successful answer for this URL if we have
+      // one, so the screen shows real (if stale) data instead of an error.
+      offline.online.value = false;
+      final cached = await offline.cacheGet(_cacheKey(path, query));
+      if (cached != null) return cached;
       throw ApiError('Network error. Check your connection.');
     }
+    offline.online.value = true;
     if (r.statusCode == 401 && retry) {
       if (await _doRefresh()) return get(path, query: query, retry: false);
       await _sessionLost();
     }
-    return _json(r);
+    final data = _json(r); // throws on >= 400, so only 2xx reaches the cache
+    await offline.cachePut(_cacheKey(path, query), data);
+    syncOutbox(); // opportunistic: a working GET means the network is back
+    return data;
   }
 
   Future<dynamic> post(String path, Map body, {bool retry = true}) async {
@@ -245,8 +273,14 @@ class Api {
           .post(_u(path), headers: _headers, body: jsonEncode(body))
           .timeout(const Duration(seconds: 20));
     } catch (_) {
+      offline.online.value = false;
+      if (_isQueueable(path)) {
+        await offline.enqueue('POST', path, body);
+        return {'_queued': true};
+      }
       throw ApiError('Network error. Check your connection.');
     }
+    offline.online.value = true;
     if (r.statusCode == 401 && retry) {
       if (await _doRefresh()) return post(path, body, retry: false);
       await _sessionLost();
@@ -261,11 +295,72 @@ class Api {
           .patch(_u(path), headers: _headers, body: jsonEncode(body))
           .timeout(const Duration(seconds: 20));
     } catch (_) {
+      offline.online.value = false;
+      if (_isQueueable(path)) {
+        await offline.enqueue('PATCH', path, body);
+        return {'_queued': true};
+      }
       throw ApiError('Network error. Check your connection.');
     }
+    offline.online.value = true;
     if (r.statusCode == 401 && retry) {
       if (await _doRefresh()) return patch(path, body, retry: false);
       await _sessionLost();
+    }
+    return _json(r);
+  }
+
+  // ---- offline write queue sync ----
+  bool _syncing = false;
+
+  /// Replay queued offline writes for the signed-in user, in order. Called when
+  /// the network returns (a successful GET, or a connectivity change). A write
+  /// the server rejects (4xx — e.g. an already-reviewed correction, or a second
+  /// clock-in) is dropped rather than retried forever; a network/5xx failure
+  /// stops the run so order is preserved and it's retried next time.
+  Future<void> syncOutbox() async {
+    if (_syncing || _access == null) return;
+    _syncing = true;
+    try {
+      final rows = await offline.pendingWrites();
+      for (final row in rows) {
+        final id = row['id'] as int;
+        final method = row['method'] as String;
+        final path = row['path'] as String;
+        final body = jsonDecode(row['body'] as String) as Map;
+        try {
+          await _replay(method, path, body);
+        } on ApiError catch (e) {
+          if (e.status != null && e.status! >= 400 && e.status! < 500 &&
+              e.status != 401) {
+            await offline.removeWrite(id); // server refused it — drop, move on
+            continue;
+          }
+          break; // auth/5xx/network — stop, keep order, try again later
+        } catch (_) {
+          break; // network down — stop and retry later
+        }
+        await offline.removeWrite(id);
+      }
+    } finally {
+      _syncing = false;
+    }
+  }
+
+  /// One replay attempt with auth + a single 401-refresh. Never re-queues (that
+  /// would loop): a network failure here throws and syncOutbox stops.
+  Future<dynamic> _replay(String method, String path, Map body,
+      {bool retry = true}) async {
+    final r = method == 'PATCH'
+        ? await http
+            .patch(_u(path), headers: _headers, body: jsonEncode(body))
+            .timeout(const Duration(seconds: 20))
+        : await http
+            .post(_u(path), headers: _headers, body: jsonEncode(body))
+            .timeout(const Duration(seconds: 20));
+    if (r.statusCode == 401 && retry) {
+      if (await _doRefresh()) return _replay(method, path, body, retry: false);
+      throw ApiError('Session expired.', status: 401);
     }
     return _json(r);
   }

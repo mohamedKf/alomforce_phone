@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.7+8
+version: 1.0.8+9
 
 environment:
   sdk: ^3.12.0
@@ -45,6 +45,9 @@ dependencies:
                                  # FCM only draws one by itself in the background
   image_picker: ^1.1.2           # invoice photos: camera or gallery
   file_picker: ^8.3.7            # invoice documents already on the phone
+  sqflite: ^2.3.3               # on-device cache + write queue (offline)
+  path: ^1.9.0                  # build the local database path
+  connectivity_plus: ^6.1.0     # flush the queue when the network returns
 
 dev_dependencies:
   flutter_test:

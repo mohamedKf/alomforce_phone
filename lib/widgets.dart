@@ -1,7 +1,53 @@
 // widgets.dart — small shared building blocks.
 import 'package:flutter/material.dart';
 
+import 'i18n.dart';
+import 'offline.dart';
 import 'theme.dart';
+
+/// A thin status bar shown at the top of the app shells when the phone is
+/// offline or has changes waiting to sync. Invisible when online and empty.
+class OfflineBanner extends StatelessWidget {
+  const OfflineBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([offline.online, offline.pending]),
+      builder: (context, _) {
+        final online = offline.online.value;
+        final n = offline.pending.value;
+        if (online && n == 0) return const SizedBox.shrink();
+        final color = online ? kBlue : kWarn;
+        final icon = online ? Icons.sync : Icons.cloud_off;
+        final text = online
+            ? t('Syncing {n} change(s)…').replaceFirst('{n}', '$n')
+            : n > 0
+                ? t('Offline — {n} change(s) will sync').replaceFirst('{n}', '$n')
+                : t('Offline — showing saved data');
+        return Material(
+          color: color.withValues(alpha: 0.14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            child: Row(
+              children: [
+                Icon(icon, size: 16, color: color),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(text,
+                      style: TextStyle(
+                          color: color,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
 // ---- responsive helpers (phone → tablet / iPad) ----
 
