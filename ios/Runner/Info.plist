@@ -24,8 +24,14 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>האפליקציה משתמשת במצלמה לסריקת קוד השרת, לצילום שרטוטים ותעודות משלוח, ולצילום חשבוניות.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>האפליקציה מצרפת מסמכים וחשבוניות שכבר צילמתם.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -66,9 +72,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>The app uses the camera to scan the server QR code and to photograph supplier invoices.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>The app can attach an invoice you already photographed.</string>
 </dict>
 </plist>
