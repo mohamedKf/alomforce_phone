@@ -216,6 +216,12 @@ class Api {
   // ---- requests with 401-refresh retry ----
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
+        // Django's LocaleMiddleware is installed on the server, so a status
+        // name or a validation message comes back in whatever language is
+        // asked for -- and without this header that is English, whatever the
+        // person is reading the app in. Every "Confirmed" sitting in the
+        // middle of a Hebrew screen was this line missing.
+        'Accept-Language': _language,
         if (_access != null) 'Authorization': 'Bearer $_access',
       };
 

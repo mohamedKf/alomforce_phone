@@ -16,10 +16,10 @@ import 'package:alomforce_phone/api.dart';
 import 'package:alomforce_phone/main.dart' as app;
 import 'package:alomforce_phone/state.dart';
 
-const server = 'https://alomforce-production.up.railway.app';
-const manager = ['300000007', 'Alomforce!2026'];
-const warehouse = ['300000031', 'Alomforce!2026'];
-const driver = ['300000064', 'Alomforce!2026'];
+const server = 'http://127.0.0.1:8001';
+const manager = ['203456785', 'Alom!2026'];
+const warehouse = ['000000018', 'Alom!2026'];
+const driver = ['055555555', 'Alom!2026'];
 
 late IntegrationTestWidgetsFlutterBinding binding;
 
@@ -104,6 +104,18 @@ void main() {
                                2: '09-warehouse-stock'}.entries) {
       if (await tapTab(tester, entry.key)) {
         await shot(tester, entry.value, settleSeconds: 4);
+      }
+    }
+
+    // The order itself, opened. The list shows numbers; the prepare screen
+    // is where the cross-section drawings and the picking detail live, and
+    // that is the screen worth photographing.
+    if (await tapTab(tester, 1)) {
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      final cards = find.byType(Card);
+      if (cards.evaluate().isNotEmpty) {
+        await tester.tap(cards.first);
+        await shot(tester, '08b-order-prepare', settleSeconds: 6);
       }
     }
 

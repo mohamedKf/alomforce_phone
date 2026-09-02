@@ -7,6 +7,7 @@ import '../../i18n.dart';
 import '../../theme.dart';
 import '../../widgets.dart';
 import 'orders_to_prepare.dart' show statusColors;
+import 'stock_screen.dart' show imageUrl;
 
 // What the "advance" button does next, per current status. The warehouse worker
 // takes an order up to 'ready' only — marking it delivered is the driver's job.
@@ -329,15 +330,27 @@ class _OrderPrepareScreenState extends State<OrderPrepareScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // The cross-section. A fitter recognises a profile by its
+                // shape long before reading the number off it, and in a
+                // workshop that picture is the difference between pulling
+                // 1700 and pulling 1701.
+                _section(line['section_image']),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(line['number'] ?? '',
+                      // The number with what it is: "1700" alone means
+                      // nothing on a picking list.
+                      Text([
+                        line['number'] ?? '',
+                        if ((line['description'] ?? '').toString().isNotEmpty)
+                          line['description'],
+                      ].join('  '),
                           style: const TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 15, color: kInk)),
-                      if ((line['description'] ?? '') != '')
-                        Text(line['description'],
+                      if ((line['series_name'] ?? '').toString().isNotEmpty)
+                        Text(line['series_name'],
                             style: const TextStyle(color: kMuted, fontSize: 13)),
                     ],
                   ),
@@ -428,6 +441,31 @@ class _OrderPrepareScreenState extends State<OrderPrepareScreen> {
           label: Text(t(next[1])),
         ),
       ),
+    );
+  }
+
+  /// The profile's cross-section drawing, or a placeholder that says so.
+  ///
+  /// Sized to be readable at arm's length on a phone held in a gloved hand,
+  /// not as a decorative thumbnail.
+  Widget _section(dynamic raw) {
+    final url = imageUrl(raw);
+    return Container(
+      width: 58,
+      height: 58,
+      decoration: BoxDecoration(
+        color: kBlueLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: kLine),
+      ),
+      clipBehavior: Clip.antiAlias,
+      padding: const EdgeInsets.all(3),
+      child: url == null
+          ? const Icon(Icons.image_not_supported_outlined,
+              color: kMuted, size: 20)
+          : Image.network(url, fit: BoxFit.contain,
+              errorBuilder: (_, _, _) => const Icon(
+                  Icons.broken_image_outlined, color: kMuted, size: 20)),
     );
   }
 
