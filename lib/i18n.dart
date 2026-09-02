@@ -11,6 +11,8 @@ String t(String key) => _map[api.language]?[key] ?? key;
 
 const Map<String, Map<String, String>> _map = {
   'he': {
+    'Documents': 'מסמכים',
+    'Drawing': 'שרטוט',
     'In stock only': 'רק מה שבמלאי',
     'Not kept in stock.': 'לא מוחזק במלאי.',
     'It can still be ordered.': 'עדיין אפשר להזמין.',
@@ -225,6 +227,8 @@ const Map<String, Map<String, String>> _map = {
         'e.g. Forgot to clock out': 'לדוגמה: שכחתי להחתים יציאה',
   },
   'ar': {
+    'Documents': 'المستندات',
+    'Drawing': 'رسم',
         'Year': 'السنة',
         'Month': 'الشهر',
         'All years': 'كل السنوات',

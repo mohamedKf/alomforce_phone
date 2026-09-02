@@ -8,6 +8,7 @@ import '../../theme.dart';
 import '../../widgets.dart';
 import 'orders_to_prepare.dart' show statusColors;
 import 'stock_screen.dart' show imageUrl;
+import '../orders/order_documents.dart';
 
 // What the "advance" button does next, per current status. The warehouse worker
 // takes an order up to 'ready' only — marking it delivered is the driver's job.
@@ -232,7 +233,27 @@ class _OrderPrepareScreenState extends State<OrderPrepareScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_order?['number']?.toString() ?? t('Order'))),
+      appBar: AppBar(
+        title: Text(_order?['number']?.toString() ?? t('Order')),
+        actions: [
+          // The drawing the job is cut to. A workshop works from that sheet,
+          // not from the order lines, and the person holding the phone is the
+          // one who needs it in front of them.
+          if (_order != null)
+            IconButton(
+              tooltip: t('Documents'),
+              icon: Badge(
+                isLabelVisible:
+                    ((_order!['attachments'] as List?) ?? []).isNotEmpty,
+                label: Text(
+                    '${((_order!['attachments'] as List?) ?? []).length}'),
+                child: const Icon(Icons.description_outlined),
+              ),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => OrderDocumentsScreen(order: _order!))),
+            ),
+        ],
+      ),
       body: _error != null
           ? EmptyState(Icons.cloud_off, _error.toString(),
               actionLabel: t('Retry'), onAction: _load)
