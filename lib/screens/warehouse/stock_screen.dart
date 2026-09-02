@@ -32,7 +32,9 @@ class _StockScreenState extends State<StockScreen> {
 
   // Filter option lists (from /stock/options/) and the current selection.
   List<dynamic> _series = [];
+  List<dynamic> _types = [];
   String? _fSeries;
+  String? _fType;
 
   @override
   void initState() {
@@ -54,6 +56,7 @@ class _StockScreenState extends State<StockScreen> {
       if (mounted) {
         setState(() {
           _series = (o['series'] as List?) ?? [];
+          _types = (o['roles'] as List?) ?? [];
         });
       }
     } catch (_) {}
@@ -80,6 +83,7 @@ class _StockScreenState extends State<StockScreen> {
       final text = _search.text.trim();
       if (text.isNotEmpty) query['search'] = text;
       if (_fSeries != null) query['series'] = _fSeries!;
+      if (_fType != null) query['role'] = _fType!;
       if (_inStockOnly) query['in_stock'] = 'true';
       final data = await api.get('/catalog/profiles/', query: query);
       final rows = data is Map ? (data['results'] ?? []) : data;
@@ -89,7 +93,16 @@ class _StockScreenState extends State<StockScreen> {
     }
   }
 
-  bool get _hasFilter => _fSeries != null || _inStockOnly;
+  bool get _hasFilter =>
+      _fSeries != null || _fType != null || _inStockOnly;
+
+  /// The chip shows the role's own word, not its code.
+  String? get _typeLabel {
+    if (_fType == null) return null;
+    final m = _types.firstWhere((r) => r['value'] == _fType,
+        orElse: () => null);
+    return m == null ? _fType : t(m['label'].toString());
+  }
 
   /// The holdings behind one profile: every length and finish, where each one
   /// is, and the movements that can be recorded against it.
@@ -182,6 +195,11 @@ class _StockScreenState extends State<StockScreen> {
           _chip(t('Series'), _fSeries,
               _series.map((s) => (s['code'].toString(), s['name'].toString())).toList(),
               (v) => setState(() => _fSeries = v)),
+          _chip(t('Type'), _typeLabel,
+              _types
+                  .map((r) => (r['value'].toString(), t(r['label'].toString())))
+                  .toList(),
+              (v) => setState(() => _fType = v)),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 3),
             child: FilterChip(
@@ -200,6 +218,8 @@ class _StockScreenState extends State<StockScreen> {
                 onPressed: () {
                   setState(() {
                     _fSeries = null;
+                    _fType = null;
+                    _inStockOnly = false;
                   });
                   _load();
                 },
