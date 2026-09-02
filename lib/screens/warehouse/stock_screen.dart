@@ -26,16 +26,13 @@ class StockScreen extends StatefulWidget {
 class _StockScreenState extends State<StockScreen> {
   final _search = TextEditingController();
   Timer? _debounce;
+  bool _inStockOnly = false;
   List<dynamic>? _items;
   Object? _error;
 
   // Filter option lists (from /stock/options/) and the current selection.
   List<dynamic> _series = [];
-  List<dynamic> _types = [];
-  List<String> _finishes = [];
   String? _fSeries;
-  String? _fType;
-  String? _fFinish;
 
   @override
   void initState() {
@@ -57,8 +54,6 @@ class _StockScreenState extends State<StockScreen> {
       if (mounted) {
         setState(() {
           _series = (o['series'] as List?) ?? [];
-          _types = (o['roles'] as List?) ?? [];
-          _finishes = ((o['finishes'] as List?) ?? []).cast<String>();
         });
       }
     } catch (_) {}
@@ -69,16 +64,24 @@ class _StockScreenState extends State<StockScreen> {
     _debounce = Timer(const Duration(milliseconds: 350), _load);
   }
 
+  /// The catalogue, with what is on hand against each entry.
+  ///
+  /// Listed off the catalogue rather than off the stock table. A yard keeps
+  /// stock of about seventy extrusions out of the thirteen hundred it can
+  /// order, so asking the stock table alone hid the other twelve hundred and
+  /// fifty -- and somebody looking up a profile the shop can get but does not
+  /// keep was told, wrongly, that it does not exist.
+  ///
+  /// A profile with nothing on the shelf shows zero, which is an answer.
   Future<void> _load() async {
     setState(() => _error = null);
     try {
-      final query = <String, String>{};
+      final query = <String, String>{'page_size': '400'};
       final text = _search.text.trim();
       if (text.isNotEmpty) query['search'] = text;
       if (_fSeries != null) query['series'] = _fSeries!;
-      if (_fType != null) query['role'] = _fType!;
-      if (_fFinish != null) query['finish'] = _fFinish!;
-      final data = await api.get('/stock/', query: query);
+      if (_inStockOnly) query['in_stock'] = 'true';
+      final data = await api.get('/catalog/profiles/', query: query);
       final rows = data is Map ? (data['results'] ?? []) : data;
       if (mounted) setState(() => _items = rows as List);
     } catch (e) {
@@ -86,7 +89,59 @@ class _StockScreenState extends State<StockScreen> {
     }
   }
 
-  bool get _hasFilter => _fSeries != null || _fType != null || _fFinish != null;
+  bool get _hasFilter => _fSeries != null || _inStockOnly;
+
+  /// The holdings behind one profile: every length and finish, where each one
+  /// is, and the movements that can be recorded against it.
+  ///
+  /// The list answers "have we got any". This answers "where, and in what" --
+  /// and it is the only place a movement makes sense, because a movement is
+  /// always against a particular shelf.
+  Future<void> _openHoldings(Map profile) async {
+    final number = '${profile['number'] ?? ''}';
+    List holdings = const [];
+    try {
+      final data = await api.get('/stock/', query: {'search': number});
+      holdings = (data is Map ? (data['results'] ?? []) : data) as List;
+    } catch (_) {}
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        builder: (_, controller) => ListView(
+          controller: controller,
+          padding: const EdgeInsets.fromLTRB(14, 16, 14, 24),
+          children: [
+            Text('$number   ${profile['description'] ?? ''}',
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700, fontSize: 16, color: kInk)),
+            const SizedBox(height: 12),
+            if (holdings.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 34),
+                child: Column(children: [
+                  const Icon(Icons.inventory_2_outlined,
+                      size: 38, color: kMuted),
+                  const SizedBox(height: 10),
+                  Text(t('Not kept in stock.'),
+                      style: const TextStyle(color: kMuted)),
+                  const SizedBox(height: 4),
+                  Text(t('It can still be ordered.'),
+                      style: const TextStyle(color: kMuted, fontSize: 12)),
+                ]),
+              )
+            else
+              ...holdings.map((h) =>
+                  _StockCard(item: h as Map, onChanged: _load)),
+          ],
+        ),
+      ),
+    );
+    _load();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,12 +182,17 @@ class _StockScreenState extends State<StockScreen> {
           _chip(t('Series'), _fSeries,
               _series.map((s) => (s['code'].toString(), s['name'].toString())).toList(),
               (v) => setState(() => _fSeries = v)),
-          _chip(t('Type'), _typeLabel,
-              _types.map((r) => (r['value'].toString(), t(r['label'].toString()))).toList(),
-              (v) => setState(() => _fType = v)),
-          _chip(t('Finish'), _fFinish,
-              _finishes.map((f) => (f, f)).toList(),
-              (v) => setState(() => _fFinish = v)),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 3),
+            child: FilterChip(
+              label: Text(t('In stock only')),
+              selected: _inStockOnly,
+              onSelected: (v) {
+                setState(() => _inStockOnly = v);
+                _load();
+              },
+            ),
+          ),
           if (_hasFilter)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
@@ -140,8 +200,6 @@ class _StockScreenState extends State<StockScreen> {
                 onPressed: () {
                   setState(() {
                     _fSeries = null;
-                    _fType = null;
-                    _fFinish = null;
                   });
                   _load();
                 },
@@ -152,12 +210,6 @@ class _StockScreenState extends State<StockScreen> {
         ],
       ),
     );
-  }
-
-  String? get _typeLabel {
-    if (_fType == null) return null;
-    final m = _types.firstWhere((r) => r['value'] == _fType, orElse: () => null);
-    return m == null ? _fType : t(m['label'].toString());
   }
 
   Widget _chip(String label, String? selectedLabel,
@@ -217,7 +269,97 @@ class _StockScreenState extends State<StockScreen> {
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
       itemHeight: 210,
       itemCount: _items!.length,
-      itemBuilder: (_, i) => _StockCard(item: _items![i], onChanged: _load),
+      itemBuilder: (_, i) => _ProfileCard(
+          profile: _items![i] as Map,
+          onTap: () => _openHoldings(_items![i] as Map)),
+    );
+  }
+}
+
+/// One catalogue entry, with what is on the shelf against it.
+///
+/// Zero is shown plainly rather than the row being left out. "We can get it
+/// but we have none" is a real answer to "have you got 05980", and a list
+/// built from the stock table alone cannot give it.
+class _ProfileCard extends StatelessWidget {
+  final Map profile;
+  final VoidCallback onTap;
+  const _ProfileCard({required this.profile, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final onHand = double.tryParse('${profile['on_hand'] ?? 0}') ?? 0;
+    final series = ((profile['series_codes'] as List?) ?? []).join(', ');
+    final img = imageUrl(profile['section_image']);
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: kBlueLight,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: kLine),
+                ),
+                clipBehavior: Clip.antiAlias,
+                padding: const EdgeInsets.all(3),
+                child: img == null
+                    ? const Icon(Icons.image_not_supported_outlined,
+                        color: kMuted, size: 22)
+                    : Image.network(img,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => const Icon(
+                            Icons.broken_image_outlined,
+                            color: kMuted,
+                            size: 22)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${profile['number'] ?? ''}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: kInk)),
+                    if ('${profile['description'] ?? ''}'.isNotEmpty)
+                      Text('${profile['description']}',
+                          style:
+                              const TextStyle(color: kMuted, fontSize: 13)),
+                    if (series.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(series,
+                            style: const TextStyle(
+                                color: kMuted, fontSize: 12)),
+                      ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(onHand.toStringAsFixed(onHand % 1 == 0 ? 0 : 1),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                          color: onHand > 0 ? kSuccess : kMuted)),
+                  Text(t('m'),
+                      style: const TextStyle(color: kMuted, fontSize: 11)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
