@@ -345,22 +345,25 @@ class _ProfileCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${profile['number'] ?? ''}',
+                    // Led by what the workshop calls it. A profile listed
+                    // in more than one series shows each, because "1300 or
+                    // 1700, the side one" is how it gets asked for.
+                    Text([
+                      if (series.isNotEmpty) series,
+                      if ('${profile['description'] ?? ''}'.isNotEmpty)
+                        '${profile['description']}',
+                    ].join('  '),
                         style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
                             color: kInk)),
-                    if ('${profile['description'] ?? ''}'.isNotEmpty)
-                      Text('${profile['description']}',
-                          style:
-                              const TextStyle(color: kMuted, fontSize: 13)),
-                    if (series.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(series,
-                            style: const TextStyle(
-                                color: kMuted, fontSize: 12)),
-                      ),
+                    // The catalogue code, which is what is on the rack label.
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text('${profile['number'] ?? ''}',
+                          style: const TextStyle(
+                              color: kMuted, fontSize: 13)),
+                    ),
                   ],
                 ),
               ),

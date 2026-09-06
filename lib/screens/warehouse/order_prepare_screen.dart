@@ -361,18 +361,27 @@ class _OrderPrepareScreenState extends State<OrderPrepareScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // The number with what it is: "1700" alone means
-                      // nothing on a picking list.
+                      // Led by what the workshop calls it: the series
+                      // number and what the part does. A fitter asks for
+                      // "1700 צד", not for catalogue code 05980 -- that is
+                      // printed on the rack label and nowhere else, so it
+                      // goes underneath where it is still to hand.
                       Text([
-                        line['number'] ?? '',
+                        if ((line['series_code'] ?? '').toString().isNotEmpty)
+                          line['series_code'],
                         if ((line['description'] ?? '').toString().isNotEmpty)
                           line['description'],
                       ].join('  '),
                           style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 15, color: kInk)),
-                      if ((line['series_name'] ?? '').toString().isNotEmpty)
-                        Text(line['series_name'],
-                            style: const TextStyle(color: kMuted, fontSize: 13)),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: kInk)),
+                      Text([
+                        line['number'] ?? '',
+                        if ((line['series_name'] ?? '').toString().isNotEmpty)
+                          line['series_name'],
+                      ].join('  ·  '),
+                          style: const TextStyle(color: kMuted, fontSize: 13)),
                     ],
                   ),
                 ),
