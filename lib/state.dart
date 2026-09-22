@@ -6,6 +6,7 @@ import 'api.dart';
 import 'crash.dart';
 import 'offline.dart';
 import 'push.dart';
+import 'update.dart';
 
 class AppState extends ChangeNotifier {
   bool booting = true;
@@ -69,14 +70,17 @@ class AppState extends ChangeNotifier {
   }
 
   /// GET /config/ needs a signed-in user, so it is asked for here, after a
-  /// login or a restored session. Today it carries the crash-reporting DSN;
-  /// nothing waits on it, and a failure only means no reports this session.
+  /// login or a restored session. It carries the crash-reporting DSN and the
+  /// newest published APK; nothing waits on it, and a failure only means no
+  /// reports and no update notice this session.
   Future<void> _loadConfig() async {
     await crash.setUser(api.user);
     try {
-      await crash.apply(await api.get('/config/'));
+      final cfg = await api.get('/config/');
+      await crash.apply(cfg);
       // Sentry may only just have started: name the user to it now too.
       await crash.setUser(api.user);
+      await appUpdate.apply(cfg);
     } catch (e) {
       debugPrint('Config unavailable: $e');
     }

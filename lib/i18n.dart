@@ -240,6 +240,11 @@ const Map<String, Map<String, String>> _map = {
         'Use the AlomForce server address. On the same Wi-Fi as the office computer, that is its LAN IP and port.': 'הזינו את כתובת שרת AlomForce. באותה רשת Wi-Fi של מחשב המשרד, זו כתובת ה-IP המקומית שלו והפורט.',
         'coming soon.': 'בקרוב.',
         'e.g. Forgot to clock out': 'לדוגמה: שכחתי להחתים יציאה',
+        // app update notice
+        'Version {v} is available': 'גרסה {v} זמינה',
+        'A new version is available': 'גרסה חדשה זמינה',
+        'Download': 'הורדה',
+        'Not now': 'לא עכשיו',
   },
   'ar': {
     'Send by WhatsApp': 'إرسال عبر واتساب',
@@ -447,5 +452,10 @@ const Map<String, Map<String, String>> _map = {
         'Use the AlomForce server address. On the same Wi-Fi as the office computer, that is its LAN IP and port.': 'أدخل عنوان خادم AlomForce. على نفس شبكة Wi-Fi الخاصة بحاسوب المكتب، هذا هو عنوان IP المحلي والمنفذ.',
         'coming soon.': 'قريبًا.',
         'e.g. Forgot to clock out': 'مثال: نسيت تسجيل الخروج',
+        // app update notice
+        'Version {v} is available': 'الإصدار {v} متوفر',
+        'A new version is available': 'يتوفر إصدار جديد',
+        'Download': 'تنزيل',
+        'Not now': 'ليس الآن',
   },
 };

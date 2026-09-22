@@ -1,9 +1,11 @@
 // widgets.dart — small shared building blocks.
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'i18n.dart';
 import 'offline.dart';
 import 'theme.dart';
+import 'update.dart';
 
 /// A thin status bar shown at the top of the app shells when the phone is
 /// offline or has changes waiting to sync. Invisible when online and empty.
@@ -39,6 +41,86 @@ class OfflineBanner extends StatelessWidget {
                           color: color,
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// A thin notice at the top of the app shells when the server has published a
+/// newer APK than the one running. Invisible otherwise — including when
+/// nothing has been published at all, which is silence, not "up to date".
+///
+/// Download opens the .apk in the browser and Android installs it; there is
+/// no in-app installer. Dismiss remembers this build (see [AppUpdate]).
+class UpdateBanner extends StatelessWidget {
+  const UpdateBanner({super.key});
+
+  Future<void> _download(BuildContext context, AppRelease release) async {
+    final uri = Uri.tryParse(release.url);
+    if (uri == null) return;
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (context.mounted) showError(context, e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<AppRelease?>(
+      valueListenable: appUpdate.available,
+      builder: (context, release, _) {
+        if (release == null) return const SizedBox.shrink();
+        final headline = release.version.isEmpty
+            ? t('A new version is available')
+            : t('Version {v} is available').replaceFirst('{v}', release.version);
+        return Material(
+          color: kBlue.withValues(alpha: 0.14),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 4, 6),
+            child: Row(
+              children: [
+                const Icon(Icons.system_update, size: 18, color: kBlue),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(headline,
+                          style: const TextStyle(
+                              color: kBlue,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600)),
+                      if (release.notes.isNotEmpty)
+                        Text(release.notes,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: kMuted, fontSize: 11.5)),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _download(context, release),
+                  style: TextButton.styleFrom(
+                      foregroundColor: kBlue,
+                      visualDensity: VisualDensity.compact),
+                  child: Text(t('Download'),
+                      style: const TextStyle(
+                          fontSize: 12.5, fontWeight: FontWeight.w700)),
+                ),
+                IconButton(
+                  tooltip: t('Not now'),
+                  icon: const Icon(Icons.close, size: 18),
+                  color: kMuted,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: appUpdate.dismiss,
                 ),
               ],
             ),

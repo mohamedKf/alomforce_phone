@@ -80,6 +80,7 @@ class _WarehouseHomeState extends State<WarehouseHome> {
       body: Column(
         children: [
           const OfflineBanner(),
+          const UpdateBanner(),
           Expanded(child: pages[_tab]),
         ],
       ),

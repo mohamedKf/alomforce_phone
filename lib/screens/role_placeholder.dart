@@ -5,6 +5,7 @@ import '../i18n.dart';
 
 import '../state.dart';
 import '../theme.dart';
+import '../widgets.dart';
 
 const _roleLabels = {
   'manager': 'Manager',
@@ -30,24 +31,33 @@ class RolePlaceholder extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.construction, size: 60, color: kMuted),
-              const SizedBox(height: 16),
-              Text('$label — ${t('coming soon.')}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 17, color: kInk)),
-              const SizedBox(height: 8),
-              Text(t('The warehouse worker screens are ready first.'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: kMuted)),
-            ],
+      // The update notice belongs here too: a role without screens yet is
+      // still someone holding an out-of-date APK.
+      body: Column(
+        children: [
+          const UpdateBanner(),
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.construction, size: 60, color: kMuted),
+                    const SizedBox(height: 16),
+                    Text('$label — ${t('coming soon.')}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 17, color: kInk)),
+                    const SizedBox(height: 8),
+                    Text(t('The warehouse worker screens are ready first.'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: kMuted)),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

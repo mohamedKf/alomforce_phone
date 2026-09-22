@@ -83,6 +83,7 @@ class _ManagerHomeState extends State<ManagerHome> {
       body: Column(
         children: [
           const OfflineBanner(),
+          const UpdateBanner(),
           Expanded(child: pages[_tab]),
         ],
       ),
