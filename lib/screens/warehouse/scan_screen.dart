@@ -28,12 +28,17 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   Future<void> _open(String raw) async {
-    // Tolerate a scheme prefix, so a pasted QR payload still resolves.
-    final number = raw.trim().replaceFirst(RegExp(r'^.*[:/]'), '').trim();
-    if (number.isEmpty || _handling) return;
+    // What a label carries goes through as it is: a bare number on the
+    // older Klil labels, or a maker-qualified key ("extal:C90") on the
+    // newer ones -- the colon is part of the key, so it must not be cut
+    // off. Only a URL-shaped payload is trimmed to its last segment.
+    var code = raw.trim();
+    if (code.contains('/')) code = code.substring(code.lastIndexOf('/') + 1);
+    code = code.trim();
+    if (code.isEmpty || _handling) return;
     setState(() => _handling = true);
     await Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => ProfileDetailScreen(number: number)));
+        builder: (_) => ProfileDetailScreen(code: code)));
     if (mounted) setState(() => _handling = false);
   }
 

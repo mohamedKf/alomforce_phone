@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../crash.dart';
 import '../i18n.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -47,6 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _checkRegistration() async {
     try {
       final cfg = await api.get('/config/');
+      crash.apply(cfg);
       if (mounted) {
         setState(() {
           _offered = cfg['manager_registration'] == true;

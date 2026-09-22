@@ -15,4 +15,7 @@ class Config {
   static const String defaultServerUrl =
       'https://alomforce-production.up.railway.app';
   static const String currency = '₪';
+  // Copied from pubspec.yaml (package_info_plus is not a dependency). Names
+  // the build in crash reports; bump it together with the pubspec version.
+  static const String appVersion = '1.0.11+12';
 }

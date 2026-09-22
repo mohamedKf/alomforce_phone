@@ -48,6 +48,7 @@ dependencies:
   sqflite: ^2.3.3               # on-device cache + write queue (offline)
   path: ^1.9.0                  # build the local database path
   connectivity_plus: ^6.1.0     # flush the queue when the network returns
+  sentry_flutter: ^8.14.2
 
 dev_dependencies:
   flutter_test:

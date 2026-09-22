@@ -33,14 +33,50 @@ class _StockScreenState extends State<StockScreen> {
   // Filter option lists (from /stock/options/) and the current selection.
   List<dynamic> _series = [];
   List<dynamic> _types = [];
-  String? _fSeries;
+  String? _fSeries; // a series key ("klil:7000"), or a bare code on old servers
   String? _fType;
+
+  // The makers the catalogue is split by. Null until known, and null for
+  // good when the server has no manufacturer axis, in which case the chips
+  // stay hidden and nothing below is filtered by maker. _fMaker is a slug;
+  // null means every maker.
+  List<Map>? _makers;
+  String? _fMaker;
 
   @override
   void initState() {
     super.initState();
-    _loadOptions();
+    _loadMakers();
     _load();
+  }
+
+  Future<void> _loadMakers() async {
+    try {
+      final makers = await api.manufacturers();
+      if (mounted) {
+        setState(() {
+          _makers = makers;
+          _fMaker = (makers != null && makers.length == 1)
+              ? makers.single['slug']?.toString()
+              : null;
+        });
+      }
+    } catch (_) {}
+    _loadOptions();
+  }
+
+  Map<String, String> get _makerQuery => {'manufacturer': ?_fMaker};
+
+  /// Numbers repeat between makers, so a series is named by its key where
+  /// the server gives one; an older server only has the code.
+  static String _seriesKey(dynamic s) =>
+      (s['key'] ?? s['code']).toString();
+
+  String? get _seriesLabel {
+    if (_fSeries == null) return null;
+    final m = _series.firstWhere((se) => _seriesKey(se) == _fSeries,
+        orElse: () => null);
+    return m == null ? _fSeries : (m['name'] ?? m['code']).toString();
   }
 
   @override
@@ -52,10 +88,18 @@ class _StockScreenState extends State<StockScreen> {
 
   Future<void> _loadOptions() async {
     try {
-      final o = await api.get('/stock/options/');
+      final q = _makerQuery;
+      final o = await api.get('/stock/options/', query: q);
+      List series = (o['series'] as List?) ?? [];
+      if (_makers != null) {
+        // With more than one maker, a series is named by its key, which
+        // only the catalogue endpoint gives (and filters by maker).
+        final data = await api.get('/catalog/series/', query: q);
+        series = data is List ? data : (data['results'] ?? []) as List;
+      }
       if (mounted) {
         setState(() {
-          _series = (o['series'] as List?) ?? [];
+          _series = series;
           _types = (o['roles'] as List?) ?? [];
         });
       }
@@ -85,6 +129,7 @@ class _StockScreenState extends State<StockScreen> {
       if (_fSeries != null) query['series'] = _fSeries!;
       if (_fType != null) query['role'] = _fType!;
       if (_inStockOnly) query['in_stock'] = 'true';
+      query.addAll(_makerQuery);
       final data = await api.get('/catalog/profiles/', query: query);
       final rows = data is Map ? (data['results'] ?? []) : data;
       if (mounted) setState(() => _items = rows as List);
@@ -112,9 +157,15 @@ class _StockScreenState extends State<StockScreen> {
   /// always against a particular shelf.
   Future<void> _openHoldings(Map profile) async {
     final number = '${profile['number'] ?? ''}';
+    final slug = '${profile['manufacturer_slug'] ?? ''}';
     List holdings = const [];
     try {
-      final data = await api.get('/stock/', query: {'search': number});
+      // The same number can sit in two makers' catalogues; the shelf being
+      // asked about is this maker's.
+      final data = await api.get('/stock/', query: {
+        'search': number,
+        if (slug.isNotEmpty) 'manufacturer': slug,
+      });
       holdings = (data is Map ? (data['results'] ?? []) : data) as List;
     } catch (_) {}
     if (!mounted) return;
@@ -179,6 +230,20 @@ class _StockScreenState extends State<StockScreen> {
             ),
           ),
         ),
+        ManufacturerChips(
+          makers: _makers,
+          selected: _fMaker,
+          onChanged: (slug) {
+            if (slug == _fMaker) return;
+            setState(() {
+              _fMaker = slug;
+              _fSeries = null; // a series belongs to one maker
+              _series = [];
+            });
+            _loadOptions();
+            _load();
+          },
+        ),
         _filterBar(),
         Expanded(child: _list()),
       ],
@@ -192,8 +257,13 @@ class _StockScreenState extends State<StockScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         children: [
-          _chip(t('Series'), _fSeries,
-              _series.map((s) => (s['code'].toString(), s['name'].toString())).toList(),
+          _chip(t('Series'), _seriesLabel,
+              _series
+                  .map((s) => (
+                        _seriesKey(s),
+                        (s['name'] ?? s['code']).toString()
+                      ))
+                  .toList(),
               (v) => setState(() => _fSeries = v)),
           _chip(t('Type'), _typeLabel,
               _types
@@ -284,6 +354,12 @@ class _StockScreenState extends State<StockScreen> {
     if (_items!.isEmpty) {
       return EmptyState(Icons.inventory_2_outlined, t('No stock found.'));
     }
+    // Whose profile it is only matters once the list mixes makers.
+    final mixed = _items!
+            .map((m) => '${(m as Map)['manufacturer_slug'] ?? ''}')
+            .toSet()
+            .length >
+        1;
     return ResponsiveCards(
       onRefresh: _load,
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
@@ -291,6 +367,7 @@ class _StockScreenState extends State<StockScreen> {
       itemCount: _items!.length,
       itemBuilder: (_, i) => _ProfileCard(
           profile: _items![i] as Map,
+          showMaker: mixed,
           onTap: () => _openHoldings(_items![i] as Map)),
     );
   }
@@ -303,8 +380,10 @@ class _StockScreenState extends State<StockScreen> {
 /// built from the stock table alone cannot give it.
 class _ProfileCard extends StatelessWidget {
   final Map profile;
+  final bool showMaker;
   final VoidCallback onTap;
-  const _ProfileCard({required this.profile, required this.onTap});
+  const _ProfileCard(
+      {required this.profile, required this.onTap, this.showMaker = false});
 
   @override
   Widget build(BuildContext context) {
@@ -360,7 +439,12 @@ class _ProfileCard extends StatelessWidget {
                     // The catalogue code, which is what is on the rack label.
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
-                      child: Text('${profile['number'] ?? ''}',
+                      child: Text([
+                        '${profile['number'] ?? ''}',
+                        if (showMaker &&
+                            '${profile['manufacturer_name'] ?? ''}'.isNotEmpty)
+                          '${profile['manufacturer_name']}',
+                      ].join('  ·  '),
                           style: const TextStyle(
                               color: kMuted, fontSize: 13)),
                     ),

@@ -253,6 +253,40 @@ class _OrderDocumentsScreenState extends State<OrderDocumentsScreen> {
     }
   }
 
+  /// Open WhatsApp with the customer's copy of the quote or delivery note.
+  ///
+  /// The server composes the whole thing -- the public link, the wording in
+  /// the shop's language, the client's number when it knows one -- and hands
+  /// back a wa.me URL, so the phone only has to open it. When there is no
+  /// number, WhatsApp opens on its contact list with the message ready.
+  Future<void> _share(String kind) async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final data = await api.get('/orders/$_orderId/share/',
+          query: {'kind': kind});
+      final url = (data is Map ? data['whatsapp_url'] : null)?.toString() ?? '';
+      if (url.isEmpty) throw ApiError(t('Could not load the documents.'));
+      if (!mounted) return;
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } on ApiError catch (e) {
+      if (!mounted) return;
+      if (e.status != null && e.status! >= 400 && e.status! < 500) {
+        // The server said why -- a quote with no price yet, an order that
+        // has no note to send -- in the reader's language.
+        showError(context, e.message);
+      } else {
+        setState(() => _error = e.message);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _remove(Map row) async {
     if (row['generated'] == true) {
       // Nothing to remove: it is not a file. It stops being listed when the
@@ -336,6 +370,10 @@ class _OrderDocumentsScreenState extends State<OrderDocumentsScreen> {
 
   Widget _tile(dynamic row) {
     final isPdf = row['is_pdf'] == true;
+    final kind = (row['kind'] ?? '').toString();
+    // The two papers a customer is sent: the offer while it is still one,
+    // and the note that goes with the goods.
+    final shareable = kind == 'quote' || kind == 'delivery_note';
     return Card(
       child: ListTile(
         onTap: () => _open(row as Map),
@@ -363,7 +401,18 @@ class _OrderDocumentsScreenState extends State<OrderDocumentsScreen> {
             row['uploaded_by_name'],
         ].where((s) => (s ?? '').toString().isNotEmpty).join(' · ')),
         trailing: row['generated'] == true
-            ? Pill(t('Live'), kNavy)
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (shareable)
+                    IconButton(
+                      tooltip: t('Send by WhatsApp'),
+                      icon: const Icon(Icons.chat, color: Color(0xFF25D366)),
+                      onPressed: _busy ? null : () => _share(kind),
+                    ),
+                  Pill(t('Live'), kNavy),
+                ],
+              )
             : IconButton(
                 icon: const Icon(Icons.delete_outline, color: kDanger),
                 onPressed: () => _remove(row as Map),

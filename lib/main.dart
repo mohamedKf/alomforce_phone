@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'api.dart';
+import 'crash.dart';
 import 'push.dart';
 import 'screens/login_screen.dart';
 import 'screens/manager/manager_home.dart';
@@ -22,7 +23,9 @@ void main() {
   // is a user to register it to.
   push.start();
   appState.boot();
-  runApp(const AlomForceApp());
+  // Starts Sentry first when a previous launch saved a DSN; otherwise runs
+  // the app plainly and Sentry starts when /config/ arrives (see AppState).
+  crash.launch(const AlomForceApp());
 }
 
 class AlomForceApp extends StatelessWidget {

@@ -69,6 +69,10 @@ class Offline {
 
   // ---- read cache ----
 
+  /// The body is stored whole, as the JSON the server sent, so a field the
+  /// screens learned to read later (a profile's `key`, `manufacturer_slug`,
+  /// `manufacturer_name`, the manufacturers list itself) comes back from the
+  /// cache exactly as it went in -- nothing here picks columns.
   Future<void> cachePut(String key, dynamic data) async {
     final db = _db;
     if (db == null || _uid == 0) return;

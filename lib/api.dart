@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import 'config.dart';
+import 'crash.dart';
 import 'offline.dart';
 
 /// Writes that are safe to make offline and replay later: idempotent or
@@ -54,6 +55,35 @@ class Api {
   String get fullName => (user['full_name'] ?? '').toString();
 
   Uri _u(String path) => Uri.parse('$apiBase$path');
+
+  /// A value going into one path segment -- a profile key such as
+  /// "extal:C90" or a bare number. Everything a URL would misread is escaped,
+  /// but the colon stays: it is legal inside a segment, the server reads it
+  /// as the maker/code separator, and escaping it here would be double work
+  /// once Uri.parse leaves the %XX alone.
+  static String pathSegment(String value) =>
+      Uri.encodeComponent(value.trim()).replaceAll('%3A', ':');
+
+  /// The makers the catalogue is split by, active ones in display order.
+  ///
+  /// Null when the server predates the manufacturer axis (404), so a screen
+  /// can hide its chips and behave exactly as it did before. A successful
+  /// answer is cached by get() like every other read, so the chips render
+  /// offline too.
+  Future<List<Map>?> manufacturers() async {
+    dynamic data;
+    try {
+      data = await get('/catalog/manufacturers/');
+    } on ApiError catch (e) {
+      if (e.status == 404) return null;
+      rethrow;
+    }
+    final rows = data is Map ? (data['results'] ?? []) : (data ?? []);
+    return [
+      for (final m in rows as List)
+        if (m is Map && m['is_active'] != false) m,
+    ];
+  }
 
   // ---- server settings ----
   static String normalizeServer(String url) {
@@ -401,7 +431,10 @@ class Api {
       if (await _doRefresh()) return getBytes(path, retry: false);
       await _sessionLost();
     }
-    if (r.statusCode >= 400) throw ApiError(_describe(r), status: r.statusCode);
+    if (r.statusCode >= 400) {
+      _noteFailure(r);
+      throw ApiError(_describe(r), status: r.statusCode);
+    }
     return r.bodyBytes;
   }
 
@@ -436,7 +469,18 @@ class Api {
     return _json(r);
   }
 
+  /// A 5xx is the server's failure, not the user's: tell crash reporting,
+  /// which keeps it to one message per endpoint per session. 4xx answers
+  /// are the user's own (a refused write, a missing record) and stay local.
+  void _noteFailure(http.Response r) {
+    if (r.statusCode < 500) return;
+    final req = r.request;
+    crash.report(req?.url.path ?? '', r.statusCode,
+        method: req?.method ?? 'GET');
+  }
+
   dynamic _json(http.Response r) {
+    _noteFailure(r);
     if (r.statusCode == 204 || r.body.isEmpty) return null;
     dynamic body;
     try {

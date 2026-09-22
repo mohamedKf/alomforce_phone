@@ -183,3 +183,56 @@ void showOk(BuildContext context, String message) {
     SnackBar(content: Text(message), backgroundColor: kSuccess),
   );
 }
+
+/// One chip per maker, with "All" first, above a catalogue or stock list.
+///
+/// Renders nothing when there is fewer than two makers to choose between:
+/// a single-maker yard (or a server that predates the manufacturer axis,
+/// where [makers] is null) sees the screens exactly as before. [selected]
+/// is the maker's slug, null meaning every maker.
+class ManufacturerChips extends StatelessWidget {
+  final List<Map>? makers;
+  final String? selected;
+  final ValueChanged<String?> onChanged;
+  const ManufacturerChips({
+    required this.makers,
+    required this.selected,
+    required this.onChanged,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final list = makers ?? const <Map>[];
+    if (list.length < 2) return const SizedBox.shrink();
+    Widget chip(String label, String? value) {
+      final active = selected == value;
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: ChoiceChip(
+          label: Text(label,
+              style: TextStyle(
+                  color: active ? Colors.white : kInk, fontSize: 13)),
+          selected: active,
+          showCheckmark: false,
+          selectedColor: kNavy,
+          backgroundColor: Colors.white,
+          side: BorderSide(color: active ? kNavy : kLine),
+          onSelected: (_) => onChanged(value),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        children: [
+          chip(t('All manufacturers'), null),
+          for (final m in list) chip(makerName(m), m['slug'].toString()),
+        ],
+      ),
+    );
+  }
+}

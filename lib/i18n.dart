@@ -9,9 +9,20 @@ bool get isRtl => api.language == 'he' || api.language == 'ar';
 
 String t(String key) => _map[api.language]?[key] ?? key;
 
+/// A manufacturer's name in the language the app is read in. The server
+/// sends the Hebrew name as `name` and an English one alongside; Arabic
+/// readers get the Hebrew, which is what is printed on the catalogues here.
+String makerName(dynamic m) {
+  if (m is! Map) return (m ?? '').toString();
+  final en = (m['name_en'] ?? '').toString();
+  if (api.language == 'en' && en.isNotEmpty) return en;
+  return (m['name'] ?? m['slug'] ?? '').toString();
+}
+
 const Map<String, Map<String, String>> _map = {
   'he': {
     'Documents': 'מסמכים',
+    'Send by WhatsApp': 'שלח בוואטסאפ',
     'Drawing': 'שרטוט',
     'In stock only': 'רק מה שבמלאי',
     'Not kept in stock.': 'לא מוחזק במלאי.',
@@ -158,6 +169,10 @@ const Map<String, Map<String, String>> _map = {
     'Scanning runs on the phone.': 'הסריקה פועלת בטלפון.',
     // stock
     'Search profile number…': 'חיפוש מספר פרופיל…', 'Series': 'סדרה',
+    'Manufacturer': 'יצרן', 'All manufacturers': 'כל היצרנים',
+    'Compatible with': 'תואם ל־',
+    'Weight': 'משקל', 'Series (group)': 'סדרה (קבוצה)',
+    'No profile matches': 'לא נמצא פרופיל תואם',
     'Type': 'סוג', 'Finish': 'גימור', 'All': 'הכול', 'Clear': 'נקה',
     'No stock found.': 'לא נמצא מלאי.', 'bars': 'מוטות',
     'Receive': 'קבלה', 'Pick': 'ליקוט', 'Adjust': 'התאמה',
@@ -227,6 +242,7 @@ const Map<String, Map<String, String>> _map = {
         'e.g. Forgot to clock out': 'לדוגמה: שכחתי להחתים יציאה',
   },
   'ar': {
+    'Send by WhatsApp': 'إرسال عبر واتساب',
     'Documents': 'المستندات',
     'Drawing': 'رسم',
         'Year': 'السنة',
@@ -360,6 +376,10 @@ const Map<String, Map<String, String>> _map = {
     'Point at the server QR on the desktop': 'وجّه نحو رمز QR على الكمبيوتر',
     'Scanning runs on the phone.': 'المسح يعمل على الهاتف.',
     'Search profile number…': 'ابحث برقم المقطع…', 'Series': 'السلسلة',
+    'Manufacturer': 'الشركة المصنّعة', 'All manufacturers': 'كل الشركات المصنّعة',
+    'Compatible with': 'متوافق مع',
+    'Weight': 'الوزن', 'Series (group)': 'السلسلة (المجموعة)',
+    'No profile matches': 'لا يوجد مقطع مطابق',
     'Type': 'النوع', 'Finish': 'التشطيب', 'All': 'الكل', 'Clear': 'مسح',
     'No stock found.': 'لا مخزون.', 'bars': 'قضبان',
     'Receive': 'استلام', 'Pick': 'انتقاء', 'Adjust': 'تعديل',

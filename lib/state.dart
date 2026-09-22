@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 
 import 'api.dart';
+import 'crash.dart';
 import 'offline.dart';
 import 'push.dart';
 
@@ -55,6 +56,7 @@ class AppState extends ChangeNotifier {
     // sent at the original login is still current. Not awaited: the app must
     // not wait on Firebase to draw its first screen.
     if (api.isLoggedIn) push.registerForUser();
+    if (api.isLoggedIn) _loadConfig();
     notifyListeners();
   }
 
@@ -62,7 +64,22 @@ class AppState extends ChangeNotifier {
     offline.setUser(_userId);
     api.syncOutbox();
     push.registerForUser();
+    _loadConfig();
     notifyListeners();
+  }
+
+  /// GET /config/ needs a signed-in user, so it is asked for here, after a
+  /// login or a restored session. Today it carries the crash-reporting DSN;
+  /// nothing waits on it, and a failure only means no reports this session.
+  Future<void> _loadConfig() async {
+    await crash.setUser(api.user);
+    try {
+      await crash.apply(await api.get('/config/'));
+      // Sentry may only just have started: name the user to it now too.
+      await crash.setUser(api.user);
+    } catch (e) {
+      debugPrint('Config unavailable: $e');
+    }
   }
 
   /// Rebuild the whole app (e.g. after the language changed) so the new locale
@@ -82,6 +99,7 @@ class AppState extends ChangeNotifier {
     await offline.clearCache();
     offline.setUser(0);
     await api.logout();
+    await crash.setUser(const {});
     notifyListeners();
   }
 }

@@ -21,7 +21,11 @@ class NewOrderScreen extends StatefulWidget {
 
 class _NewOrderScreenState extends State<NewOrderScreen> {
   Map? _client;
-  final List<Map> _lines = []; // {profile, description, total_length_m}
+  // {profile, series, number, description, total_length_m}. `profile` is the
+  // catalogue key ("klil:7000") the server names a profile by -- numbers
+  // repeat between makers -- and `number` is what the line shows. An older
+  // server sends rows without a key, and then the number is sent as before.
+  final List<Map> _lines = [];
   bool _saving = false;
   String? _error;
 
@@ -40,7 +44,9 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
     final metres = await _askMetres(profile);
     if (metres == null || !mounted) return;
     setState(() => _lines.add({
-          'profile': profile['number'],
+          'profile': profile['key'] ?? profile['number'],
+          'series': profile['series_key'],
+          'number': profile['number'],
           'description': profile['description'],
           'section_image': profile['section_image'],
           'total_length_m': metres,
@@ -117,6 +123,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
         'lines': _lines
             .map((l) => {
                   'profile': l['profile'],
+                  if (l['series'] != null) 'series': l['series'],
                   'total_length_m': l['total_length_m'],
                 })
             .toList(),
@@ -215,7 +222,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
                   errorBuilder: (_, _, _) =>
                       const Icon(Icons.broken_image_outlined, color: kMuted, size: 18)),
         ),
-        title: Text(line['profile']?.toString() ?? '',
+        title: Text((line['number'] ?? line['profile'])?.toString() ?? '',
             style: const TextStyle(fontWeight: FontWeight.w700, color: kInk)),
         subtitle: Text([
           if ((line['description'] ?? '').toString().isNotEmpty) line['description'],

@@ -25,15 +25,44 @@ class _CatalogPickerScreenState extends State<CatalogPickerScreen> {
 
   List<dynamic> _series = [];
   List<dynamic> _types = [];
-  String? _fSeries;
+  String? _fSeries; // a series key ("klil:7000"), or a bare code on old servers
   String? _fType;
+
+  // The makers the catalogue is split by. Null until known, and null for
+  // good when the server has no manufacturer axis, in which case the chips
+  // stay hidden and nothing below is filtered by maker. _fMaker is a slug;
+  // null means every maker.
+  List<Map>? _makers;
+  String? _fMaker;
 
   @override
   void initState() {
     super.initState();
-    _loadOptions();
+    _loadMakers();
     _load();
   }
+
+  Future<void> _loadMakers() async {
+    try {
+      final makers = await api.manufacturers();
+      if (mounted) {
+        setState(() {
+          _makers = makers;
+          // One maker is no choice: filter by it and say nothing. More than
+          // one starts on "All", so a search finds the number wherever it is.
+          _fMaker = (makers != null && makers.length == 1)
+              ? makers.single['slug']?.toString()
+              : null;
+        });
+      }
+    } catch (_) {}
+    _loadOptions();
+  }
+
+  /// Every maker is being shown at once, so a row has to say whose it is.
+  bool get _mixedMakers => (_makers?.length ?? 0) > 1 && _fMaker == null;
+
+  Map<String, String> get _makerQuery => {'manufacturer': ?_fMaker};
 
   @override
   void dispose() {
@@ -44,8 +73,9 @@ class _CatalogPickerScreenState extends State<CatalogPickerScreen> {
 
   Future<void> _loadOptions() async {
     try {
-      final series = await api.get('/catalog/series/');
-      final roles = await api.get('/catalog/listings/roles/');
+      final q = _makerQuery;
+      final series = await api.get('/catalog/series/', query: q);
+      final roles = await api.get('/catalog/listings/roles/', query: q);
       if (mounted) {
         setState(() {
           _series = series is List ? series : (series['results'] ?? []);
@@ -67,6 +97,7 @@ class _CatalogPickerScreenState extends State<CatalogPickerScreen> {
       if (_search.text.trim().isNotEmpty) q['search'] = _search.text.trim();
       if (_fSeries != null) q['series'] = _fSeries!;
       if (_fType != null) q['role'] = _fType!;
+      q.addAll(_makerQuery);
       final data = await api.get('/catalog/listings/', query: q);
       final rows = data is Map ? (data['results'] ?? []) : data;
       if (mounted) setState(() => _items = rows as List);
@@ -102,12 +133,39 @@ class _CatalogPickerScreenState extends State<CatalogPickerScreen> {
               ),
             ),
           ),
+          ManufacturerChips(
+            makers: _makers,
+            selected: _fMaker,
+            onChanged: (slug) {
+              if (slug == _fMaker) return;
+              setState(() {
+                _fMaker = slug;
+                _fSeries = null; // a series belongs to one maker
+                _series = [];
+              });
+              _loadOptions();
+              _load();
+            },
+          ),
           _filterBar(),
           Expanded(child: _list()),
         ],
       ),
     );
   }
+
+  /// The chip's own words for the chosen series: its code, not the key.
+  String? get _seriesLabel {
+    if (_fSeries == null) return null;
+    final m = _series.firstWhere((s) => _seriesKey(s) == _fSeries,
+        orElse: () => null);
+    return m == null ? _fSeries : m['code'].toString();
+  }
+
+  /// Numbers repeat between makers, so a series is named by its key where
+  /// the server gives one; an older server only has the code.
+  static String _seriesKey(dynamic s) =>
+      (s['key'] ?? s['code']).toString();
 
   Widget _filterBar() {
     return SizedBox(
@@ -116,11 +174,16 @@ class _CatalogPickerScreenState extends State<CatalogPickerScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         children: [
-          _chip(t('Series'), _fSeries,
+          _chip(t('Series'), _seriesLabel,
               _series
                   .map((s) => (
-                        s['code'].toString(),
-                        '${s['code']}  ${s['family_name'] ?? ''}'.trim()
+                        _seriesKey(s),
+                        [
+                          '${s['code']}  ${s['family_name'] ?? ''}'.trim(),
+                          if (_mixedMakers &&
+                              '${s['manufacturer_name'] ?? ''}'.isNotEmpty)
+                            s['manufacturer_name'].toString(),
+                        ].join('  ·  ')
                       ))
                   .toList(),
               (v) => setState(() => _fSeries = v)),
@@ -218,6 +281,7 @@ class _CatalogPickerScreenState extends State<CatalogPickerScreen> {
     final img = imageUrl(m['section_image']);
     final meta = [
       m['series_code'],
+      if (_mixedMakers) m['manufacturer_name'],
       if ((m['role_display'] ?? '').toString().isNotEmpty) t(m['role_display'].toString()),
     ].where((s) => (s ?? '').toString().isNotEmpty).join('  ·  ');
     return Material(
